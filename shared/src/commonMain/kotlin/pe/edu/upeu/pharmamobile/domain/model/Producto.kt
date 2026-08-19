@@ -23,4 +23,10 @@ data class Producto(
         require(verificarStock(cantidad)) { "Stock insuficiente para el producto: $nombre" }
         stock -= cantidad
     }
+
+    /** Patron copy(): devuelve una nueva instancia con el stock aumentado, sin mutar el original. */
+    fun reabastecer(cantidad: Int): Producto {
+        require(cantidad > 0) { "La cantidad a reabastecer debe ser mayor que 0" }
+        return copy(stock = stock + cantidad)
+    }
 }
