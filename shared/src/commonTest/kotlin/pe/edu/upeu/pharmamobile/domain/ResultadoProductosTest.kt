@@ -45,7 +45,7 @@ class ResultadoProductosTest {
     @Test
     fun mostrarResultadoDeExito() {
         val texto = mostrarResultado(ResultadoProductos.Exito(listOf(producto("Amoxicilina", 8))))
+        assertTrue(texto.contains("Productos encontrados: 1"))
         assertTrue(texto.contains("Amoxicilina"))
-        assertTrue(texto.contains("1 producto"))
     }
 }
