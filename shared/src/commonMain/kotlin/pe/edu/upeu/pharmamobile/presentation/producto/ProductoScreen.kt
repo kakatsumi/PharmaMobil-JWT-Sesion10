@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile.presentation.producto
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,8 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -21,7 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,23 +33,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 
 @Composable
 @Preview
-fun ProductoScreen() {
-    // --- Estados del formulario (remember + mutableStateOf) ---
-    var nombre by remember { mutableStateOf("") }
-    var precio by remember { mutableStateOf("") }
-    var stock by remember { mutableStateOf("") }
-    var mensaje by remember { mutableStateOf("") }
-    var esExito by remember { mutableStateOf(false) }
-    // Controla si el usuario ya intento registrar (evita mostrar errores al inicio)
-    var intentoRegistrar by remember { mutableStateOf(false) }
+fun ProductoScreen(
+    modifier: Modifier = Modifier,
+    onProductoRegistrado: (Producto) -> Unit = {}
+) {
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var precio by rememberSaveable { mutableStateOf("") }
+    var stock by rememberSaveable { mutableStateOf("") }
+    var mensaje by rememberSaveable { mutableStateOf("") }
+    var esExito by rememberSaveable { mutableStateOf(false) }
+    var intentoRegistrar by rememberSaveable { mutableStateOf(false) }
 
     // --- Validacion por campo con conversion segura (*OrNull) ---
     val errorNombre: String? = if (nombre.isBlank()) "El nombre es obligatorio." else null
 
-    val precioNum: Double? = precio.trim().toDoubleOrNull()
+    val precioNum: Double? = precio.trim().replace(',', '.').toDoubleOrNull()
     val errorPrecio: String? = when {
         precioNum == null -> "Ingrese un precio numerico."
         precioNum <= 0.0 -> "El precio debe ser mayor que cero."
@@ -64,34 +68,34 @@ fun ProductoScreen() {
     val formularioValido = errorNombre == null && errorPrecio == null && errorStock == null
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .safeContentPadding()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(PharmaDimens.screenPadding),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(PharmaDimens.md),
     ) {
         Text(
-            text = "PharmaMobile",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "Nuevo producto",
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
         )
         Text(
-            text = "Registro de Producto",
-            style = MaterialTheme.typography.titleMedium,
+            text = "Registra los datos para mantener actualizado el inventario.",
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.height(20.dp))
 
         Card(
-            modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier.fillMaxWidth().widthIn(max = 560.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(PharmaDimens.md),
+                verticalArrangement = Arrangement.spacedBy(PharmaDimens.sm),
             ) {
                 OutlinedTextField(
                     value = nombre,
@@ -106,8 +110,11 @@ fun ProductoScreen() {
                 )
                 OutlinedTextField(
                     value = precio,
-                    onValueChange = { precio = it },
-                    label = { Text("Precio") },
+                    onValueChange = { valor ->
+                        precio = valor.filter { it.isDigit() || it == '.' || it == ',' }
+                    },
+                    label = { Text("Precio (S/)") },
+                    placeholder = { Text("Ej. 12,50") },
                     singleLine = true,
                     isError = intentoRegistrar && errorPrecio != null,
                     supportingText = {
@@ -138,6 +145,7 @@ fun ProductoScreen() {
                                 precio = precioNum!!,
                                 stock = stockNum!!,
                             )
+                            onProductoRegistrado(producto)
                             mensaje = "Producto registrado correctamente: ${producto.nombre}"
                             esExito = true
                             // Limpieza automatica del formulario
@@ -157,21 +165,19 @@ fun ProductoScreen() {
             }
         }
 
-        Spacer(Modifier.height(16.dp))
-
         if (mensaje.isNotEmpty()) {
             Surface(
                 color = if (esExito) MaterialTheme.colorScheme.primaryContainer
                         else MaterialTheme.colorScheme.errorContainer,
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.fillMaxWidth().widthIn(max = 480.dp),
+                modifier = Modifier.fillMaxWidth().widthIn(max = 560.dp),
             ) {
                 Text(
                     text = mensaje,
                     color = if (esExito) MaterialTheme.colorScheme.onPrimaryContainer
                             else MaterialTheme.colorScheme.onErrorContainer,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(14.dp),
+                    modifier = Modifier.fillMaxWidth().padding(PharmaDimens.sm),
                 )
             }
         }

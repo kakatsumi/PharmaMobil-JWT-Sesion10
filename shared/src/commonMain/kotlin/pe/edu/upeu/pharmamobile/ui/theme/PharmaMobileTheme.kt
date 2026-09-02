@@ -9,22 +9,44 @@ private val LightColors = lightColorScheme(
     primary = PharmaPrimary,
     onPrimary = PharmaSurface,
     secondary = PharmaPrimaryDark,
+    onSecondary = PharmaSurface,
+    primaryContainer = PharmaPrimaryContainer,
+    onPrimaryContainer = PharmaOnPrimaryContainer,
+    secondaryContainer = PharmaSecondaryContainer,
+    onSecondaryContainer = PharmaOnSecondaryContainer,
     background = PharmaBackground,
     onBackground = PharmaTextPrimary,
     surface = PharmaSurface,
     onSurface = PharmaTextPrimary,
-    error = PharmaError
+    surfaceVariant = PharmaSurfaceVariant,
+    onSurfaceVariant = PharmaTextSecondary,
+    outline = PharmaOutline,
+    error = PharmaError,
+    onError = PharmaSurface,
+    errorContainer = PharmaErrorContainer,
+    onErrorContainer = PharmaOnErrorContainer
 )
 
 private val DarkColors = darkColorScheme(
     primary = PharmaPrimaryOscuro,
     onPrimary = PharmaBackgroundOscuro,
     secondary = PharmaSecundarioOscuro,
+    onSecondary = PharmaBackgroundOscuro,
+    primaryContainer = PharmaPrimaryContainerOscuro,
+    onPrimaryContainer = PharmaOnPrimaryContainerOscuro,
+    secondaryContainer = PharmaSecondaryContainerOscuro,
+    onSecondaryContainer = PharmaOnSecondaryContainerOscuro,
     background = PharmaBackgroundOscuro,
     onBackground = PharmaTextPrimaryOscuro,
     surface = PharmaSurfaceOscuro,
     onSurface = PharmaTextPrimaryOscuro,
-    error = PharmaError
+    surfaceVariant = PharmaSurfaceVariantOscuro,
+    onSurfaceVariant = PharmaTextSecondaryOscuro,
+    outline = PharmaOutlineOscuro,
+    error = PharmaErrorOscuro,
+    onError = PharmaBackgroundOscuro,
+    errorContainer = PharmaErrorContainerOscuro,
+    onErrorContainer = PharmaOnErrorContainerOscuro
 )
 
 @Composable

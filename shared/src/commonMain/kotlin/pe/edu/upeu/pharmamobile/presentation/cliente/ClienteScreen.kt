@@ -1,22 +1,17 @@
 package pe.edu.upeu.pharmamobile.presentation.cliente
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import pe.edu.upeu.pharmamobile.ui.components.EmptyState
 
 @Composable
-fun ClientesScreen() {
-    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
-        Text("Gestion de Clientes", style = MaterialTheme.typography.headlineSmall)
-        Text(
-            "Modulo demostrativo. El CRUD completo se implementara en sesiones posteriores.",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
+fun ClientesScreen(modifier: Modifier = Modifier) {
+    EmptyState(
+        icono = Icons.Outlined.Group,
+        titulo = "Clientes próximamente",
+        descripcion = "Aquí podrás registrar clientes y consultar su historial de compras.",
+        modifier = modifier
+    )
 }

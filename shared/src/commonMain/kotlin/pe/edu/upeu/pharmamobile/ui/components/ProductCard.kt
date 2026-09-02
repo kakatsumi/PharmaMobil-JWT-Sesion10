@@ -2,6 +2,7 @@ package pe.edu.upeu.pharmamobile.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,8 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
-import pe.edu.upeu.pharmamobile.ui.theme.PharmaSuccess
-import pe.edu.upeu.pharmamobile.ui.theme.PharmaWarning
 import kotlin.math.round
 
 @Composable
@@ -27,15 +26,13 @@ fun ProductCard(
     precio: Double,
     stock: Int,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
+    onClick: (() -> Unit)? = null
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        onClick = onClick,
-        shape = RoundedCornerShape(PharmaDimens.cardRadius),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
+    val cardModifier = modifier.fillMaxWidth()
+    val cardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    val cardElevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+
+    val content: @Composable ColumnScope.() -> Unit = {
         Column(modifier = Modifier.padding(PharmaDimens.md)) {
             Text(text = nombre, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(PharmaDimens.xs))
@@ -51,11 +48,30 @@ fun ProductCard(
             ) {
                 Text(
                     text = if (stock <= 5) "Stock bajo: $stock" else "Stock: $stock",
-                    color = if (stock <= 5) PharmaWarning else PharmaSuccess
+                    color = if (stock <= 5) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
                 Text(text = "S/ ${formatearPrecio(precio)}", style = MaterialTheme.typography.titleMedium)
             }
         }
+    }
+
+    if (onClick == null) {
+        Card(
+            modifier = cardModifier,
+            shape = RoundedCornerShape(PharmaDimens.cardRadius),
+            colors = cardColors,
+            elevation = cardElevation,
+            content = content
+        )
+    } else {
+        Card(
+            onClick = onClick,
+            modifier = cardModifier,
+            shape = RoundedCornerShape(PharmaDimens.cardRadius),
+            colors = cardColors,
+            elevation = cardElevation,
+            content = content
+        )
     }
 }
 

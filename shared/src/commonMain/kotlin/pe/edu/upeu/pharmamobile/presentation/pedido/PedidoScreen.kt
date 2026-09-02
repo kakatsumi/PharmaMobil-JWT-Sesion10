@@ -1,22 +1,17 @@
 package pe.edu.upeu.pharmamobile.presentation.pedido
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import pe.edu.upeu.pharmamobile.ui.components.EmptyState
 
 @Composable
-fun PedidosScreen() {
-    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
-        Text("Gestion de Pedidos", style = MaterialTheme.typography.headlineSmall)
-        Text(
-            "Modulo demostrativo de control de ordenes y despachos.",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
+fun PedidosScreen(modifier: Modifier = Modifier) {
+    EmptyState(
+        icono = Icons.AutoMirrored.Outlined.ReceiptLong,
+        titulo = "Pedidos próximamente",
+        descripcion = "Aquí podrás crear pedidos, controlar sus estados y gestionar despachos.",
+        modifier = modifier
+    )
 }
