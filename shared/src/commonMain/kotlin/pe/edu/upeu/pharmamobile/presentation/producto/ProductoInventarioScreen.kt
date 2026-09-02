@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile.presentation.producto
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,12 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,9 +35,9 @@ private fun filtrarPorTab(tab: Int): List<ProductoInventario> = when (tab) {
 }
 
 /**
- * Destino Productos del Reto 02 (guia autonoma): agrega pestanas para clasificar
- * un inventario simulado, y reutiliza [ProductoScreen] (Reto 01) para el registro,
- * sin duplicar su logica de validacion.
+ * Destino Productos del Reto 02 (guia autonoma): el formulario de registro
+ * (Reto 01, [ProductoScreen]) queda arriba tal cual, sin duplicar su codigo,
+ * y debajo se muestra el inventario simulado (Mock Data) organizado en pestanas.
  */
 @Composable
 fun ProductosScreenConTabs(
@@ -45,55 +45,49 @@ fun ProductosScreenConTabs(
     onProductoRegistrado: (Producto) -> Unit = {}
 ) {
     var tabSeleccionada by remember { mutableStateOf(0) }
-    var mostrarFormulario by remember { mutableStateOf(false) }
 
-    if (mostrarFormulario) {
-        Column(modifier = modifier.fillMaxSize()) {
-            TextButton(onClick = { mostrarFormulario = false }) {
-                Text("< Volver al inventario")
-            }
+    Column(modifier = modifier.fillMaxSize()) {
+        // --- Reto 01: formulario reutilizado, ocupa la mitad superior ---
+        Box(modifier = Modifier.weight(0.55f)) {
             ProductoScreen(onProductoRegistrado = onProductoRegistrado)
         }
-        return
-    }
 
-    Column(modifier = modifier.fillMaxSize().padding(PharmaDimens.md)) {
-        TabRow(selectedTabIndex = tabSeleccionada) {
-            titulosTabs.forEachIndexed { index, titulo ->
-                Tab(
-                    selected = tabSeleccionada == index,
-                    onClick = { tabSeleccionada = index },
-                    text = { Text(titulo) }
-                )
-            }
-        }
-        val lista = filtrarPorTab(tabSeleccionada)
-        if (lista.isEmpty()) {
-            Text(
-                "No hay productos en esta categoria.",
-                modifier = Modifier.padding(top = PharmaDimens.lg),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(top = PharmaDimens.sm),
-                verticalArrangement = Arrangement.spacedBy(PharmaDimens.sm)
-            ) {
-                items(lista) { producto ->
-                    ProductCard(
-                        nombre = producto.nombre,
-                        descripcion = if (producto.activo) "Activo" else "Inactivo",
-                        precio = producto.precio,
-                        stock = producto.stock
+        HorizontalDivider()
+
+        // --- Reto 02: inventario simulado (Mock Data) con Tabs ---
+        Column(modifier = Modifier.weight(0.45f).padding(PharmaDimens.md)) {
+            Text("Inventario simulado", style = MaterialTheme.typography.titleMedium)
+            TabRow(selectedTabIndex = tabSeleccionada) {
+                titulosTabs.forEachIndexed { index, titulo ->
+                    Tab(
+                        selected = tabSeleccionada == index,
+                        onClick = { tabSeleccionada = index },
+                        text = { Text(titulo) }
                     )
                 }
             }
-        }
-        Button(
-            onClick = { mostrarFormulario = true },
-            modifier = Modifier.fillMaxWidth().padding(top = PharmaDimens.sm)
-        ) {
-            Text("+ Registrar nuevo producto")
+            val lista = filtrarPorTab(tabSeleccionada)
+            if (lista.isEmpty()) {
+                Text(
+                    "No hay productos en esta categoria.",
+                    modifier = Modifier.padding(top = PharmaDimens.sm),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().padding(top = PharmaDimens.sm),
+                    verticalArrangement = Arrangement.spacedBy(PharmaDimens.sm)
+                ) {
+                    items(lista) { producto ->
+                        ProductCard(
+                            nombre = producto.nombre,
+                            descripcion = if (producto.activo) "Activo" else "Inactivo",
+                            precio = producto.precio,
+                            stock = producto.stock
+                        )
+                    }
+                }
+            }
         }
     }
 }
