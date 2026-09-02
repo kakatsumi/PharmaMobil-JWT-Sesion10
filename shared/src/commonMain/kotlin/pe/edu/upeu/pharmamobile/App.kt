@@ -1,18 +1,31 @@
 package pe.edu.upeu.pharmamobile
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.ReceiptLong
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
@@ -34,6 +47,15 @@ import pe.edu.upeu.pharmamobile.presentation.pedido.PedidosScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
 import pe.edu.upeu.pharmamobile.ui.theme.PharmaMobileTheme
 
+private data class ItemNav(val pantalla: Screen, val label: String, val iconoLleno: androidx.compose.ui.graphics.vector.ImageVector, val iconoContorno: androidx.compose.ui.graphics.vector.ImageVector)
+
+private val itemsNav = listOf(
+    ItemNav(Screen.Inicio, "Inicio", Icons.Filled.Home, Icons.Outlined.Home),
+    ItemNav(Screen.Productos, "Productos", Icons.Filled.Inventory2, Icons.Outlined.Inventory2),
+    ItemNav(Screen.Clientes, "Clientes", Icons.Filled.Group, Icons.Outlined.Group),
+    ItemNav(Screen.Pedidos, "Pedidos", Icons.Filled.ReceiptLong, Icons.Outlined.ReceiptLong)
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
@@ -50,26 +72,14 @@ fun App() {
                 ModalDrawerSheet {
                     Text("PharmaMobile", modifier = Modifier.padding(16.dp))
                     HorizontalDivider()
-                    NavigationDrawerItem(
-                        label = { Text("Inicio") },
-                        selected = pantallaActual is Screen.Inicio,
-                        onClick = { pantallaActual = Screen.Inicio; scope.launch { drawerState.close() } }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Productos") },
-                        selected = pantallaActual is Screen.Productos,
-                        onClick = { pantallaActual = Screen.Productos; scope.launch { drawerState.close() } }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Clientes") },
-                        selected = pantallaActual is Screen.Clientes,
-                        onClick = { pantallaActual = Screen.Clientes; scope.launch { drawerState.close() } }
-                    )
-                    NavigationDrawerItem(
-                        label = { Text("Pedidos") },
-                        selected = pantallaActual is Screen.Pedidos,
-                        onClick = { pantallaActual = Screen.Pedidos; scope.launch { drawerState.close() } }
-                    )
+                    itemsNav.forEach { item ->
+                        NavigationDrawerItem(
+                            label = { Text(item.label) },
+                            icon = { Icon(if (pantallaActual == item.pantalla) item.iconoLleno else item.iconoContorno, contentDescription = null) },
+                            selected = pantallaActual == item.pantalla,
+                            onClick = { pantallaActual = item.pantalla; scope.launch { drawerState.close() } }
+                        )
+                    }
                 }
             }
         ) {
@@ -79,16 +89,31 @@ fun App() {
                         title = { Text(tituloPantalla(pantallaActual)) },
                         navigationIcon = {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Text("\u2630")
+                                Icon(Icons.Filled.Menu, contentDescription = "Abrir menu")
                             }
                         },
                         actions = {
-                            Row(modifier = Modifier.padding(end = 8.dp)) {
-                                Text("Oscuro", modifier = Modifier.padding(top = 14.dp, end = 4.dp))
-                                Switch(checked = temaOscuro, onCheckedChange = { temaOscuro = it })
+                            IconButton(onClick = { temaOscuro = !temaOscuro }) {
+                                Icon(
+                                    if (temaOscuro) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                    contentDescription = if (temaOscuro) "Cambiar a modo claro" else "Cambiar a modo oscuro"
+                                )
                             }
                         }
                     )
+                },
+                bottomBar = {
+                    NavigationBar {
+                        itemsNav.forEach { item ->
+                            val seleccionado = pantallaActual == item.pantalla
+                            NavigationBarItem(
+                                selected = seleccionado,
+                                onClick = { pantallaActual = item.pantalla },
+                                icon = { Icon(if (seleccionado) item.iconoLleno else item.iconoContorno, contentDescription = item.label) },
+                                label = { Text(item.label) }
+                            )
+                        }
+                    }
                 }
             ) { paddingValues ->
                 Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
