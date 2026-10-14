@@ -40,6 +40,8 @@ resuelve por plataforma en `androidMain` / `iosMain` mediante `expect`/`actual`.
   Un servidor remoto requiere HTTPS. El token de escritorio solo vive en memoria
   y se pierde al cerrar la ventana. Consulta [la guía de escritorio](docs/DESKTOP.md).
   Para abrirlo con un clic en Linux, ejecuta una vez `./instalar-acceso-directo.sh`.
+  El instalador también crea **Abrir PharmaMobil** junto a esta carpeta para
+  iniciarlo directamente desde el gestor de archivos.
 - **Android:** abrir el proyecto en Android Studio, seleccionar un emulador o dispositivo
   fisico y ejecutar la configuracion `androidApp`. Por linea de comandos:
   `./gradlew :androidApp:assembleDebug`

@@ -23,6 +23,11 @@ Después haz doble clic en **PharmaMobil** en el escritorio, o búscalo como
 **PharmaMobil** en el menú de aplicaciones. El acceso directo apunta a esta
 carpeta del proyecto; si la mueves, vuelve a ejecutar el instalador.
 
+En Linux, si moviste el archivo `.desktop` a otra carpeta y el gestor de
+archivos lo abre como texto, usa el ejecutable **Abrir PharmaMobil** que el
+instalador deja junto a la carpeta del proyecto. Es un pequeño iniciador
+nativo; abre la misma vista sin mostrar código.
+
 Requiere Java 17 o superior. En Linux x64, el lanzador descarga una sola vez
 el JAR de la [versión de escritorio](https://github.com/kakatsumi/PharmaMobil-JWT-Sesion10/releases/tag/v0.1.0-desktop),
 comprueba su SHA-256 y después lo ejecuta con un máximo de 512 MiB de heap.
