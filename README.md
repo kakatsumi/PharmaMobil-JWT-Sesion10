@@ -39,6 +39,7 @@ resuelve por plataforma en `androidMain` / `iosMain` mediante `expect`/`actual`.
   y ejecuta `./ver-movil.sh --backend=http://localhost:8080` con sus credenciales.
   Un servidor remoto requiere HTTPS. El token de escritorio solo vive en memoria
   y se pierde al cerrar la ventana. Consulta [la guía de escritorio](docs/DESKTOP.md).
+  Para abrirlo con un clic en Linux, ejecuta una vez `./instalar-acceso-directo.sh`.
 - **Android:** abrir el proyecto en Android Studio, seleccionar un emulador o dispositivo
   fisico y ejecutar la configuracion `androidApp`. Por linea de comandos:
   `./gradlew :androidApp:assembleDebug`
