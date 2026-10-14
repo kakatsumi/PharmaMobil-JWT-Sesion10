@@ -73,7 +73,7 @@ private fun pantallaDesdeClave(clave: String): Screen = when (clave) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun App() {
+fun App(modoDemostracion: Boolean = false) {
     var clavePantallaActual by rememberSaveable { mutableStateOf("inicio") }
     var temaOscuro by rememberSaveable { mutableStateOf(false) }
     val productos = remember { mutableStateListOf<Producto>() }
@@ -89,7 +89,7 @@ fun App() {
             return@PharmaMobileTheme
         }
         if (sesion == null) {
-            LoginScreen(auth, sesionVm::cambiarUsuario, sesionVm::cambiarClave, sesionVm::iniciarSesion)
+            LoginScreen(auth, sesionVm::cambiarUsuario, sesionVm::cambiarClave, sesionVm::iniciarSesion, modoDemostracion)
             return@PharmaMobileTheme
         }
         Scaffold(

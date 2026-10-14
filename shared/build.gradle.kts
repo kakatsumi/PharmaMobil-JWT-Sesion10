@@ -9,6 +9,9 @@ plugins {
 }
 
 kotlin {
+    jvm("desktop") {
+        compilerOptions { jvmTarget = JvmTarget.JVM_17 }
+    }
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -41,6 +44,9 @@ kotlin {
     }
     
     sourceSets {
+        getByName("desktopMain").dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)

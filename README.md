@@ -25,10 +25,20 @@ resuelve por plataforma en `androidMain` / `iosMain` mediante `expect`/`actual`.
 
 - `shared/` - codigo compartido (commonMain, androidMain, iosMain + tests).
 - `androidApp/` - aplicacion Android (punto de entrada, `MainActivity`).
+- `desktopApp/` - vista de escritorio JVM con ventana del tamaño de un móvil.
 - `iosApp/` - aplicacion iOS (requiere macOS con Xcode para compilar).
 
 ## Como ejecutar
 
+- **Escritorio Linux x64 (sin Android Studio ni emulador):** instala Java 17 o superior,
+  abre una terminal en esta carpeta y ejecuta `./ver-movil.sh`. La primera vez
+  se descarga el paquete listo para ejecutar desde GitHub Releases. Se abre una ventana de 400 × 800 con la misma
+  interfaz Compose del móvil. Usa `demo` como usuario y contraseña para explorar
+  Inicio, Productos, Clientes y Pedidos. Los datos de demostración son locales y
+  no se envían al servidor. Para usar PharmaSoft real, primero inicia el backend
+  y ejecuta `./ver-movil.sh --backend=http://localhost:8080` con sus credenciales.
+  Un servidor remoto requiere HTTPS. El token de escritorio solo vive en memoria
+  y se pierde al cerrar la ventana. Consulta [la guía de escritorio](docs/DESKTOP.md).
 - **Android:** abrir el proyecto en Android Studio, seleccionar un emulador o dispositivo
   fisico y ejecutar la configuracion `androidApp`. Por linea de comandos:
   `./gradlew :androidApp:assembleDebug`
@@ -36,9 +46,7 @@ resuelve por plataforma en `androidMain` / `iosMain` mediante `expect`/`actual`.
 
 ## Estado
 
-Linea base tecnica estable y versionada con Git desde el primer dia. La pantalla inicial
-muestra un boton que despliega un mensaje de bienvenida, validando que la app compila y
-se ejecuta correctamente sobre Android.
+La aplicación comparte interfaz y lógica entre Android, iOS y JVM Desktop.
 
 ## Configuracion
 

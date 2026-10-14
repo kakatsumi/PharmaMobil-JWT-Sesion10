@@ -17,7 +17,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoginScreen(estado: SesionUiState, cambiarUsuario: (String) -> Unit, cambiarClave: (String) -> Unit, iniciar: () -> Unit) {
+fun LoginScreen(estado: SesionUiState, cambiarUsuario: (String) -> Unit, cambiarClave: (String) -> Unit, iniciar: () -> Unit, modoDemostracion: Boolean = false) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
@@ -25,6 +25,9 @@ fun LoginScreen(estado: SesionUiState, cambiarUsuario: (String) -> Unit, cambiar
     ) {
         Text("PharmaMobil", style = MaterialTheme.typography.headlineLarge)
         Text("Inicia sesión para continuar", modifier = Modifier.padding(bottom = 24.dp))
+        if (modoDemostracion) {
+            Text("Vista de demostración · usuario: demo · contraseña: demo", modifier = Modifier.padding(bottom = 12.dp))
+        }
         OutlinedTextField(estado.usuario, cambiarUsuario, label = { Text("Usuario") },
             singleLine = true, enabled = !estado.cargando, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(estado.clave, cambiarClave, label = { Text("Contraseña") },
