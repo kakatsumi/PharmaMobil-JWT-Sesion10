@@ -20,6 +20,14 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
+import org.koin.compose.koinInject
+import androidx.compose.runtime.LaunchedEffect
+import pe.edu.upeu.pharmamobile.presentation.sesion.LoginScreen
+import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -70,13 +78,26 @@ fun App() {
     var temaOscuro by rememberSaveable { mutableStateOf(false) }
     val productos = remember { mutableStateListOf<Producto>() }
     val pantallaActual = pantallaDesdeClave(clavePantallaActual)
+    val sesionVm: SesionViewModel = koinInject()
+    val auth = sesionVm.estado
+    LaunchedEffect(Unit) { sesionVm.comprobarSesion() }
+    val sesion = auth.sesion
 
     PharmaMobileTheme(darkTheme = temaOscuro) {
+        if (auth.comprobando) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            return@PharmaMobileTheme
+        }
+        if (sesion == null) {
+            LoginScreen(auth, sesionVm::cambiarUsuario, sesionVm::cambiarClave, sesionVm::iniciarSesion)
+            return@PharmaMobileTheme
+        }
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text(tituloPantalla(pantallaActual)) },
                     actions = {
+                        Button(onClick = { sesionVm.cerrarSesion(); clavePantallaActual = "inicio" }) { Text("Cerrar sesión") }
                         IconButton(onClick = { temaOscuro = !temaOscuro }) {
                             Icon(
                                 if (temaOscuro) Icons.Filled.LightMode else Icons.Filled.DarkMode,
@@ -88,7 +109,13 @@ fun App() {
             },
             bottomBar = {
                 NavigationBar {
-                    itemsNav.forEach { item ->
+                    itemsNav.filter { item ->
+                        when (item.pantalla) {
+                            is Screen.Clientes -> sesion.puede("CLIENTES_LEER")
+                            is Screen.Pedidos -> sesion.puede("VENTAS_LEER")
+                            else -> true
+                        }
+                    }.forEach { item ->
                         val seleccionado = pantallaActual == item.pantalla
                         NavigationBarItem(
                             selected = seleccionado,
@@ -105,14 +132,16 @@ fun App() {
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
                     totalProductos = productos.size,
                     productosConStockBajo = productos.count { it.stock in 1..5 },
-                    onRegistrarProducto = { clavePantallaActual = clavePantalla(Screen.Productos) }
+                    onRegistrarProducto = { clavePantallaActual = clavePantalla(Screen.Productos) },
+                    puedeRegistrar = sesion.puede("CATALOGO_ESCRIBIR")
                 )
                 is Screen.Productos -> ProductosScreenConTabs(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    onProductoRegistrado = { productos.add(it) }
+                    onProductoRegistrado = { productos.add(it) },
+                    puedeRegistrar = sesion.puede("CATALOGO_ESCRIBIR")
                 )
-                is Screen.Clientes -> ClientesScreen(modifier = Modifier.fillMaxSize().padding(paddingValues))
-                is Screen.Pedidos -> PedidosScreen(modifier = Modifier.fillMaxSize().padding(paddingValues))
+                is Screen.Clientes -> if (sesion.puede("CLIENTES_LEER")) ClientesScreen(modifier = Modifier.fillMaxSize().padding(paddingValues))
+                is Screen.Pedidos -> if (sesion.puede("VENTAS_LEER")) PedidosScreen(modifier = Modifier.fillMaxSize().padding(paddingValues))
             }
         }
     }

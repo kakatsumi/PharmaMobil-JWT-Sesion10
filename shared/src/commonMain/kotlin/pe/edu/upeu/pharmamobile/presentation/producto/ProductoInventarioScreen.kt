@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
@@ -15,6 +14,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import org.koin.compose.koinInject
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,20 +43,31 @@ private fun filtrarPorTab(tab: Int): List<ProductoInventario> = when (tab) {
 @Composable
 fun ProductosScreenConTabs(
     modifier: Modifier = Modifier,
-    onProductoRegistrado: (Producto) -> Unit = {}
+
+    onProductoRegistrado: (Producto) -> Unit = {},
+    puedeRegistrar: Boolean = true
 ) {
     var tabSeleccionada by remember { mutableStateOf(0) }
+    val catalogo: CatalogoViewModel = koinInject()
+    LaunchedEffect(Unit) { catalogo.cargar() }
 
     Column(modifier = modifier.fillMaxSize()) {
+        Text("Catálogo del servidor", modifier = Modifier.padding(PharmaDimens.md), style = MaterialTheme.typography.titleMedium)
+        if (catalogo.cargando) Text("Cargando productos...", modifier = Modifier.padding(PharmaDimens.md))
+        catalogo.mensaje?.let { Text(it, modifier = Modifier.padding(PharmaDimens.md), color = if (catalogo.exito) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error) }
+        catalogo.productos.take(5).forEach { Text(it, modifier = Modifier.padding(horizontal = PharmaDimens.md)) }
+        if (puedeRegistrar) Text("Categorías: " + catalogo.categorias.filter { it.estado }.joinToString { "${it.id}: ${it.nombre}" }, modifier = Modifier.padding(horizontal = PharmaDimens.md))
         // --- Reto 01: formulario reutilizado, ocupa la mitad superior ---
-        Box(modifier = Modifier.weight(0.55f)) {
-            ProductoScreen(onProductoRegistrado = onProductoRegistrado)
+        if (puedeRegistrar) Box(modifier = Modifier.weight(0.55f)) {
+            ProductoScreen(onProductoRegistrado = { producto, categoriaId, limpiar ->
+                catalogo.registrar(producto, categoriaId) { onProductoRegistrado(producto); limpiar() }
+            })
         }
 
-        HorizontalDivider()
+        if (puedeRegistrar) HorizontalDivider()
 
         // --- Reto 02: inventario simulado (Mock Data) con Tabs ---
-        Column(modifier = Modifier.weight(0.45f).padding(PharmaDimens.md)) {
+        Column(modifier = Modifier.weight(if (puedeRegistrar) 0.45f else 1f).padding(PharmaDimens.md)) {
             Text("Inventario simulado", style = MaterialTheme.typography.titleMedium)
             TabRow(selectedTabIndex = tabSeleccionada) {
                 titulosTabs.forEachIndexed { index, titulo ->

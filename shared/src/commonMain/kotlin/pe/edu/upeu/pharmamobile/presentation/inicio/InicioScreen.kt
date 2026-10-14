@@ -33,7 +33,8 @@ fun InicioScreen(
     modifier: Modifier = Modifier,
     totalProductos: Int = 0,
     productosConStockBajo: Int = 0,
-    onRegistrarProducto: () -> Unit = {}
+    onRegistrarProducto: () -> Unit = {},
+    puedeRegistrar: Boolean = true
 ) {
     Column(
         modifier = modifier.fillMaxSize().padding(PharmaDimens.screenPadding),
@@ -80,7 +81,7 @@ fun InicioScreen(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(Modifier.height(PharmaDimens.md))
-                Button(onClick = onRegistrarProducto) {
+                if (puedeRegistrar) Button(onClick = onRegistrarProducto) {
                     Icon(Icons.Filled.Add, contentDescription = null)
                     Spacer(Modifier.width(PharmaDimens.xs))
                     Text("Registrar producto")

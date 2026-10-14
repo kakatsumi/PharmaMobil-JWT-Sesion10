@@ -39,11 +39,12 @@ import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 @Preview
 fun ProductoScreen(
     modifier: Modifier = Modifier,
-    onProductoRegistrado: (Producto) -> Unit = {}
+    onProductoRegistrado: (Producto, Long, () -> Unit) -> Unit = { _, _, _ -> }
 ) {
     var nombre by rememberSaveable { mutableStateOf("") }
     var precio by rememberSaveable { mutableStateOf("") }
     var stock by rememberSaveable { mutableStateOf("") }
+    var categoriaId by rememberSaveable { mutableStateOf("") }
     var mensaje by rememberSaveable { mutableStateOf("") }
     var esExito by rememberSaveable { mutableStateOf(false) }
     var intentoRegistrar by rememberSaveable { mutableStateOf(false) }
@@ -65,7 +66,8 @@ fun ProductoScreen(
         else -> null
     }
 
-    val formularioValido = errorNombre == null && errorPrecio == null && errorStock == null
+    val categoriaNum = categoriaId.toLongOrNull()
+    val formularioValido = errorNombre == null && errorPrecio == null && errorStock == null && categoriaNum != null && categoriaNum > 0
 
     Column(
         modifier = modifier
@@ -135,6 +137,14 @@ fun ProductoScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                 )
+                OutlinedTextField(
+                    value = categoriaId,
+                    onValueChange = { categoriaId = it.filter(Char::isDigit) },
+                    label = { Text("ID de categoría") },
+                    supportingText = { Text("Consulta los ID de categoría arriba") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Button(
                     onClick = {
                         intentoRegistrar = true
@@ -145,14 +155,14 @@ fun ProductoScreen(
                                 precio = precioNum!!,
                                 stock = stockNum!!,
                             )
-                            onProductoRegistrado(producto)
-                            mensaje = "Producto registrado correctamente: ${producto.nombre}"
-                            esExito = true
-                            // Limpieza automatica del formulario
-                            nombre = ""
-                            precio = ""
-                            stock = ""
-                            intentoRegistrar = false
+                            onProductoRegistrado(producto, categoriaNum) {
+                                nombre = ""
+                                precio = ""
+                                stock = ""
+                                categoriaId = ""
+                                intentoRegistrar = false
+                            }
+                            mensaje = ""
                         } else {
                             mensaje = "Corrija los campos marcados en rojo."
                             esExito = false

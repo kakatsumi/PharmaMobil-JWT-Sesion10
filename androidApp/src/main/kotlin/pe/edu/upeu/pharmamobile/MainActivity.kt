@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile
 
 import android.os.Bundle
+import pe.edu.upeu.pharmamobile.di.iniciarAndroid
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        iniciarAndroid(applicationContext, applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0)
         setContent {
             App()
         }
