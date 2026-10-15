@@ -29,7 +29,7 @@ instalador deja junto a la carpeta del proyecto. Es un pequeño iniciador
 nativo; abre la misma vista sin mostrar código.
 
 Requiere Java 17 o superior. En Linux x64, el lanzador descarga una sola vez
-el JAR de la [versión de escritorio](https://github.com/kakatsumi/PharmaMobil-JWT-Sesion10/releases/tag/v0.1.0-desktop),
+el JAR de la [versión de escritorio](https://github.com/kakatsumi/PharmaMobil-JWT-Sesion10/releases/tag/v0.2.0-desktop),
 comprueba su SHA-256 y después lo ejecuta con un máximo de 512 MiB de heap.
 El JAR queda en `dist/` y las siguientes aperturas funcionan sin internet,
 Gradle ni Android Studio. Se cierra con el botón normal de la ventana.
@@ -40,10 +40,13 @@ configurado para el módulo compartido; el lanzador limita Gradle a 1,5 GiB y
 el compilador Kotlin a 768 MiB. La vista precompilada evita esa compilación.
 
 En el inicio de sesión de demostración escribe `demo` en ambos campos. El
-catálogo muestra dos productos y dos categorías de ejemplo. Puedes recorrer
-Inicio, Productos, Clientes y Pedidos y probar el formulario. Este modo usa un
-servidor simulado dentro del proceso; los cambios no se guardan ni llegan a
-PharmaSoft. La barra de título dice «vista de demostración».
+catálogo empieza con dos productos y dos categorías de ejemplo. Puedes recorrer
+Inicio, Productos, Clientes y Pedidos y probar el formulario. En Productos,
+**Registrar producto** abre una vista completa con desplazamiento vertical,
+selección de categoría y un botón para volver al catálogo. Este modo usa un
+servidor simulado dentro del proceso; los productos registrados se conservan
+mientras la app está abierta y se pierden al cerrarla. No llegan a PharmaSoft.
+La barra de título dice «vista de demostración».
 
 ## Conectar con PharmaSoft
 

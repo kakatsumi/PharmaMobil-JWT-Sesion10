@@ -20,6 +20,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,12 +38,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.data.repository.CategoriaDto
 import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 
 @Composable
 @Preview
 fun ProductoScreen(
     modifier: Modifier = Modifier,
+    categorias: List<CategoriaDto> = emptyList(),
+    cargando: Boolean = false,
+    mensajeServidor: String? = null,
+    onVolver: () -> Unit = {},
     onProductoRegistrado: (Producto, Long, () -> Unit) -> Unit = { _, _, _ -> }
 ) {
     var nombre by rememberSaveable { mutableStateOf("") }
@@ -48,6 +58,7 @@ fun ProductoScreen(
     var mensaje by rememberSaveable { mutableStateOf("") }
     var esExito by rememberSaveable { mutableStateOf(false) }
     var intentoRegistrar by rememberSaveable { mutableStateOf(false) }
+    var elegirCategoria by rememberSaveable { mutableStateOf(false) }
 
     // --- Validacion por campo con conversion segura (*OrNull) ---
     val errorNombre: String? = if (nombre.isBlank()) "El nombre es obligatorio." else null
@@ -55,7 +66,7 @@ fun ProductoScreen(
     val precioNum: Double? = precio.trim().replace(',', '.').toDoubleOrNull()
     val errorPrecio: String? = when {
         precioNum == null -> "Ingrese un precio numerico."
-        precioNum <= 0.0 -> "El precio debe ser mayor que cero."
+        !precioNum.isFinite() || precioNum <= 0.0 -> "El precio debe ser mayor que cero y finito."
         else -> null
     }
 
@@ -67,7 +78,8 @@ fun ProductoScreen(
     }
 
     val categoriaNum = categoriaId.toLongOrNull()
-    val formularioValido = errorNombre == null && errorPrecio == null && errorStock == null && categoriaNum != null && categoriaNum > 0
+    val categoria = categorias.firstOrNull { it.id == categoriaNum && it.estado }
+    val formularioValido = errorNombre == null && errorPrecio == null && errorStock == null && categoria != null
 
     Column(
         modifier = modifier
@@ -79,6 +91,7 @@ fun ProductoScreen(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(PharmaDimens.md),
     ) {
+        TextButton(onClick = onVolver, enabled = !cargando) { Text("← Volver al catálogo") }
         Text(
             text = "Nuevo producto",
             style = MaterialTheme.typography.headlineSmall,
@@ -101,6 +114,7 @@ fun ProductoScreen(
             ) {
                 OutlinedTextField(
                     value = nombre,
+                    enabled = !cargando,
                     onValueChange = { nombre = it },
                     label = { Text("Nombre del producto") },
                     singleLine = true,
@@ -112,6 +126,7 @@ fun ProductoScreen(
                 )
                 OutlinedTextField(
                     value = precio,
+                    enabled = !cargando,
                     onValueChange = { valor ->
                         precio = valor.filter { it.isDigit() || it == '.' || it == ',' }
                     },
@@ -127,6 +142,7 @@ fun ProductoScreen(
                 )
                 OutlinedTextField(
                     value = stock,
+                    enabled = !cargando,
                     onValueChange = { stock = it },
                     label = { Text("Stock") },
                     singleLine = true,
@@ -137,14 +153,22 @@ fun ProductoScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
-                    value = categoriaId,
-                    onValueChange = { categoriaId = it.filter(Char::isDigit) },
-                    label = { Text("ID de categoría") },
-                    supportingText = { Text("Consulta los ID de categoría arriba") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Text("Categoría", style = MaterialTheme.typography.labelLarge)
+                Box {
+                    OutlinedButton(onClick = { elegirCategoria = true }, enabled = !cargando && categorias.any { it.estado }, modifier = Modifier.fillMaxWidth()) {
+                        Text(categoria?.nombre ?: "Seleccionar categoría")
+                    }
+                    DropdownMenu(expanded = elegirCategoria, onDismissRequest = { elegirCategoria = false }) {
+                        categorias.filter { it.estado }.forEach { opcion ->
+                            DropdownMenuItem(text = { Text(opcion.nombre) }, onClick = {
+                                categoriaId = opcion.id.toString()
+                                elegirCategoria = false
+                            })
+                        }
+                    }
+                }
+                if (intentoRegistrar && categoria == null) Text("Selecciona una categoría.", color = MaterialTheme.colorScheme.error)
+                if (!cargando && categorias.none { it.estado }) Text("No hay categorías disponibles. Vuelve al catálogo para recargar.")
                 Button(
                     onClick = {
                         intentoRegistrar = true
@@ -155,7 +179,7 @@ fun ProductoScreen(
                                 precio = precioNum!!,
                                 stock = stockNum!!,
                             )
-                            onProductoRegistrado(producto, categoriaNum) {
+                            onProductoRegistrado(producto, categoria!!.id) {
                                 nombre = ""
                                 precio = ""
                                 stock = ""
@@ -169,12 +193,14 @@ fun ProductoScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !cargando,
                 ) {
-                    Text("REGISTRAR")
+                    Text(if (cargando) "Guardando…" else "Registrar producto")
                 }
             }
         }
 
+        mensajeServidor?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         if (mensaje.isNotEmpty()) {
             Surface(
                 color = if (esExito) MaterialTheme.colorScheme.primaryContainer

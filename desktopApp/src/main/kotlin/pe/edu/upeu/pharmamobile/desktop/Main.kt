@@ -8,6 +8,8 @@ import androidx.compose.ui.window.rememberWindowState
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.engine.mock.toByteArray
+import kotlinx.serialization.json.*
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -25,15 +27,24 @@ private class AlmacenEnMemoria : AlmacenSeguro {
     override fun borrarToken() { token = null }
 }
 
-private fun motorDemostracion(): HttpClientEngine = MockEngine { request ->
+internal fun motorDemostracion(): HttpClientEngine {
+    val nombres = mutableListOf("Paracetamol 500 mg", "Vitamina C")
+    return MockEngine { request ->
     val json = when (request.url.encodedPath) {
         "/api/v1/auth/login" -> """{"token":"demo-token-local","tipo":"Bearer","expiraEnSegundos":3600,"username":"demo","nombreCompleto":"Vista de demostración","roles":["ADMIN"],"permisos":["CATALOGO_ESCRIBIR","CLIENTES_LEER","VENTAS_LEER"]}"""
         "/api/v1/auth/me" -> """{"username":"demo","empleadoNombre":"Vista de demostración","roles":["ADMIN"],"permisos":["CATALOGO_ESCRIBIR","CLIENTES_LEER","VENTAS_LEER"]}"""
-        "/api/v1/productos" -> if (request.method.value == "POST") "{}" else """{"contenido":[{"nombre":"Paracetamol 500 mg"},{"nombre":"Vitamina C"}]}"""
+        "/api/v1/productos" -> if (request.method.value == "POST") {
+            val producto = Json.parseToJsonElement(request.body.toByteArray().decodeToString()).jsonObject
+            nombres.add(producto.getValue("nombre").jsonPrimitive.content)
+            "{}"
+        } else buildJsonObject {
+            put("contenido", buildJsonArray { nombres.forEach { nombre -> add(buildJsonObject { put("nombre", nombre) }) } })
+        }.toString()
         "/api/v1/categorias" -> """[{"id":1,"nombre":"Medicamentos","estado":true},{"id":2,"nombre":"Suplementos","estado":true}]"""
         else -> return@MockEngine respond("{}", HttpStatusCode.NotFound)
     }
     respond(json, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+    }
 }
 
 private fun backendSeguro(argumentos: Array<String>): String? {

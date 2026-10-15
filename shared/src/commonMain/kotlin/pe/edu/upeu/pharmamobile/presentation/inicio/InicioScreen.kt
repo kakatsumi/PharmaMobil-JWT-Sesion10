@@ -27,6 +27,8 @@ import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 import pharmamobile.shared.generated.resources.Res
 import pharmamobile.shared.generated.resources.pharmamobil_logo
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun InicioScreen(
@@ -37,7 +39,7 @@ fun InicioScreen(
     puedeRegistrar: Boolean = true
 ) {
     Column(
-        modifier = modifier.fillMaxSize().padding(PharmaDimens.screenPadding),
+        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(PharmaDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(PharmaDimens.md)
     ) {
         Image(

@@ -27,13 +27,17 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
     var cargando by mutableStateOf(false)
         private set
 
+    fun limpiarMensaje() { mensaje = null; exito = false }
+
     fun registrar(producto: Producto, categoriaId: Long, onExito: () -> Unit = {}) {
         if (cargando) return
+        limpiarMensaje()
         cargando = true
         scope.launch {
             try {
                 repo.registrar(producto, categoriaId)
-                productos = repo.listar()
+                // Keep successful creation successful even if a later refresh cannot connect.
+                productos = productos + producto.nombre
                 onExito()
                 mensaje = "Producto registrado en PharmaSoft"
                 exito = true
@@ -49,6 +53,7 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
 
     fun cargar() {
         if (cargando) return
+        limpiarMensaje()
         cargando = true
         scope.launch {
             try { productos = repo.listar(); categorias = repo.categorias(); mensaje = null }
