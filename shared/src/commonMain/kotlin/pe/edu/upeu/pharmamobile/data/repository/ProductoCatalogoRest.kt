@@ -14,10 +14,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
 import kotlinx.serialization.Serializable
 import pe.edu.upeu.pharmamobile.domain.model.ErrorSesion
+import pe.edu.upeu.pharmamobile.domain.model.Categoria
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 
 @Serializable
-data class CategoriaDto(val id: Long, val nombre: String, val estado: Boolean)
+data class CategoriaDto(val id: Long, val nombre: String, val estado: Boolean) {
+    fun aDominio() = Categoria(id, nombre, estado)
+}
 
 @Serializable
 data class ProductoRequestDto(
@@ -46,7 +49,7 @@ interface ProductoApi {
     suspend fun registrar(producto: Producto): Producto
     suspend fun actualizar(producto: Producto): Producto
     suspend fun eliminar(id: Long)
-    suspend fun categorias(): List<CategoriaDto>
+    suspend fun categorias(): List<Categoria>
 }
 
 class ProductoCatalogoRest(private val cliente: HttpClient) : ProductoApi {
@@ -68,8 +71,8 @@ class ProductoCatalogoRest(private val cliente: HttpClient) : ProductoApi {
         cliente.get("api/v1/productos/$id").body<ProductoResponseDto>().aDominio()
     }
 
-    override suspend fun categorias(): List<CategoriaDto> = proteger {
-        cliente.get("api/v1/categorias").body()
+    override suspend fun categorias(): List<Categoria> = proteger {
+        cliente.get("api/v1/categorias").body<List<CategoriaDto>>().map { it.aDominio() }
     }
 
     override suspend fun registrar(producto: Producto): Producto = proteger {
