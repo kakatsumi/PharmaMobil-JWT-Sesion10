@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.auth.authProvider
 import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.request.get
@@ -29,7 +30,10 @@ class AuthRepositorioRest(private val cliente: HttpClient, private val almacen: 
         require(dto.tipo.equals("Bearer", ignoreCase = true) && dto.token.isNotBlank())
         almacen.guardarToken(dto.token)
         cliente.authProvider<BearerAuthProvider>()?.clearToken()
-        Sesion(dto.token, dto.username, dto.nombreCompleto, dto.permisos.toSet())
+        Sesion(dto.token, dto.username, dto.nombreCompleto, dto.permisos.toSet()).also {
+            try { almacen.guardarSesionLocal(it, dto.expiraEnSegundos) }
+            catch (e: Exception) { almacen.borrarToken(); throw e }
+        }
     } catch (e: CancellationException) { throw e }
       catch (e: ClientRequestException) { throw mapearError(e.response.status, true) }
       catch (e: IOException) { throw ErrorSesion.SinConexion }
@@ -46,7 +50,11 @@ class AuthRepositorioRest(private val cliente: HttpClient, private val almacen: 
                   cerrarSesion()
                   null
               } else throw mapearError(e.response.status, false)
-          } catch (e: IOException) { throw ErrorSesion.SinConexion }
+          } catch (e: HttpRequestTimeoutException) {
+              almacen.leerSesionLocal() ?: throw ErrorSesion.SinConexion
+          } catch (e: IOException) {
+              almacen.leerSesionLocal() ?: throw ErrorSesion.SinConexion
+          }
     }
 
     override suspend fun cerrarSesion() {

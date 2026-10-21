@@ -8,17 +8,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import pe.edu.upeu.pharmamobile.data.repository.ProductoCatalogoRest
-import pe.edu.upeu.pharmamobile.data.repository.CategoriaDto
+import pe.edu.upeu.pharmamobile.domain.model.Categoria
+import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.model.ErrorSesion
 import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 
-class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesion: SesionViewModel) {
+class CatalogoViewModel(private val repo: ProductoRepository, private val sesion: SesionViewModel) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     var productos by mutableStateOf<List<Producto>>(emptyList())
         private set
-    var categorias by mutableStateOf<List<CategoriaDto>>(emptyList())
+    var categorias by mutableStateOf<List<Categoria>>(emptyList())
         private set
     var exito by mutableStateOf(false)
         private set
@@ -26,6 +26,11 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
         private set
     var cargando by mutableStateOf(false)
         private set
+
+    init {
+        scope.launch { repo.observar().collect { productos = it } }
+        scope.launch { repo.observarCategorias().collect { categorias = it } }
+    }
 
     fun limpiarMensaje() { mensaje = null; exito = false }
 
@@ -36,10 +41,8 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
         scope.launch {
             try {
                 repo.registrar(producto.copy(categoriaId = categoriaId))
-                // Keep successful creation successful even if a later refresh cannot connect.
-                productos = productos + producto.copy(categoriaId = categoriaId)
                 onExito()
-                mensaje = "Producto registrado en PharmaSoft"
+                mensaje = "Producto guardado. Comprueba la sincronización con PharmaSoft."
                 exito = true
             } catch (e: CancellationException) { throw e }
               catch (e: ErrorSesion) {
@@ -58,7 +61,6 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
         scope.launch {
             try {
                 repo.actualizar(producto.copy(categoriaId = categoriaId))
-                productos = repo.listar()
                 onExito()
                 mensaje = "Producto actualizado"
                 exito = true
@@ -77,7 +79,6 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
         scope.launch {
             try {
                 repo.eliminar(id)
-                productos = repo.listar()
                 mensaje = "Producto dado de baja"
                 exito = true
             } catch (e: CancellationException) { throw e }
@@ -93,7 +94,7 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
         limpiarMensaje()
         cargando = true
         scope.launch {
-            try { productos = repo.listar(); categorias = repo.categorias(); mensaje = null }
+            try { repo.sincronizar(); mensaje = "Catálogo sincronizado"; exito = true }
             catch (e: CancellationException) { throw e }
             catch (e: ErrorSesion) {
                 when (e) {

@@ -15,8 +15,10 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import java.net.URI
+import java.io.File
 import pe.edu.upeu.pharmamobile.App
 import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
+import pe.edu.upeu.pharmamobile.data.local.CreadorDeDriverDesktop
 import pe.edu.upeu.pharmamobile.di.iniciarDependencias
 
 /** The desktop preview keeps JWTs in memory, so closing the window ends the session. */
@@ -28,19 +30,27 @@ private class AlmacenEnMemoria : AlmacenSeguro {
 }
 
 internal fun motorDemostracion(): HttpClientEngine {
-    val nombres = mutableListOf("Paracetamol 500 mg", "Vitamina C")
+    val productos = mutableListOf(
+        buildJsonObject { put("id", 1); put("nombre", "Paracetamol 500 mg"); put("precio", 3.5); put("stock", 20); put("estado", true); put("categoriaId", 1) },
+        buildJsonObject { put("id", 2); put("nombre", "Vitamina C"); put("precio", 5.0); put("stock", 10); put("estado", true); put("categoriaId", 2) }
+    )
     return MockEngine { request ->
     val json = when (request.url.encodedPath) {
-        "/api/v1/auth/login" -> """{"token":"demo-token-local","tipo":"Bearer","expiraEnSegundos":3600,"username":"demo","nombreCompleto":"Vista de demostración","roles":["ADMIN"],"permisos":["CATALOGO_ESCRIBIR","CLIENTES_LEER","VENTAS_LEER"]}"""
-        "/api/v1/auth/me" -> """{"username":"demo","empleadoNombre":"Vista de demostración","roles":["ADMIN"],"permisos":["CATALOGO_ESCRIBIR","CLIENTES_LEER","VENTAS_LEER"]}"""
+        "/api/v1/auth/login" -> """{"token":"demo-token-local","tipo":"Bearer","expiraEnSegundos":3600,"username":"demo","nombreCompleto":"Vista de demostración","roles":["ADMIN"],"permisos":["CATALOGO_LEER","CATALOGO_ESCRIBIR","CLIENTES_LEER","VENTAS_LEER"]}"""
+        "/api/v1/auth/me" -> """{"username":"demo","empleadoNombre":"Vista de demostración","roles":["ADMIN"],"permisos":["CATALOGO_LEER","CATALOGO_ESCRIBIR","CLIENTES_LEER","VENTAS_LEER"]}"""
         "/api/v1/productos" -> if (request.method.value == "POST") {
-            val producto = Json.parseToJsonElement(request.body.toByteArray().decodeToString()).jsonObject
-            nombres.add(producto.getValue("nombre").jsonPrimitive.content)
-            "{}"
+            val recibido = Json.parseToJsonElement(request.body.toByteArray().decodeToString()).jsonObject
+            buildJsonObject {
+                put("id", (productos.maxOfOrNull { it.getValue("id").jsonPrimitive.int } ?: 0) + 1)
+                recibido.forEach { (clave, valor) -> put(clave, valor) }
+            }.also { productos.add(it) }.toString()
         } else buildJsonObject {
-            put("contenido", buildJsonArray { nombres.forEach { nombre -> add(buildJsonObject { put("nombre", nombre) }) } })
+            put("contenido", JsonArray(productos))
+            put("pagina", 0); put("tamanio", 100); put("totalElementos", productos.size)
+            put("totalPaginas", 1); put("ultima", true)
         }.toString()
         "/api/v1/categorias" -> """[{"id":1,"nombre":"Medicamentos","estado":true},{"id":2,"nombre":"Suplementos","estado":true}]"""
+        "/api/v1/clientes", "/api/v1/ventas" -> """{"contenido":[],"pagina":0,"tamanio":100,"totalElementos":0,"totalPaginas":0,"ultima":true}"""
         else -> return@MockEngine respond("{}", HttpStatusCode.NotFound)
     }
     respond(json, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
@@ -65,7 +75,8 @@ fun main(args: Array<String>) {
         almacen = AlmacenEnMemoria(),
         motor = if (demostracion) motorDemostracion() else OkHttp.create(),
         baseUrl = backend ?: "http://localhost:8080/",
-        depuracion = false
+        depuracion = false,
+        creadorDriver = CreadorDeDriverDesktop(File(if (demostracion) "data/demo.db" else "data/pharma.db"))
     )
 
     application {

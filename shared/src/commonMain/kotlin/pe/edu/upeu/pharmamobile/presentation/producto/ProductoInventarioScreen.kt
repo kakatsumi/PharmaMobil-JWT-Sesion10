@@ -27,10 +27,10 @@ import pe.edu.upeu.pharmamobile.ui.components.ProductCard
 import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 
 private val titulosTabs = listOf("Activos", "Inactivos", "Bajo stock")
-private fun filtrarPorTab(tab: Int): List<ProductoInventario> = when (tab) {
-    0 -> productosSimulados.filter { it.activo && !esBajoStock(it) }
-    1 -> productosSimulados.filter { !it.activo }
-    else -> productosSimulados.filter { esBajoStock(it) }
+private fun filtrarPorTab(tab: Int, productos: List<Producto>): List<Producto> = when (tab) {
+    0 -> productos.filter { it.estado && it.stock > 5 }
+    1 -> productos.filter { !it.estado }
+    else -> productos.filter { it.estado && it.stock <= 5 }
 }
 
 /** Each destination owns one vertical scroll area. */
@@ -78,29 +78,22 @@ fun ProductosScreenConTabs(
         contentPadding = PaddingValues(PharmaDimens.screenPadding),
         verticalArrangement = Arrangement.spacedBy(PharmaDimens.md)
     ) {
-        item { Text("Catálogo", style = MaterialTheme.typography.headlineSmall) }
+        item { Text("Catálogo guardado", style = MaterialTheme.typography.headlineSmall) }
+        item { Text("Productos pendientes: ${catalogo.productos.count { it.pendiente }}") }
         if (puedeRegistrar) item {
             Button(onClick = { catalogo.limpiarMensaje(); editando = null; mostrarFormulario = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Registrar producto")
             }
         }
-        if (catalogo.cargando) item { Text("Cargando productos…") }
+        if (catalogo.cargando) item { Text("Sincronizando…") }
         item {
-            TextButton(onClick = catalogo::cargar, enabled = !catalogo.cargando) { Text("Actualizar catálogo") }
+            TextButton(onClick = catalogo::cargar, enabled = !catalogo.cargando) { Text("Sincronizar") }
         }
         catalogo.mensaje?.let { mensaje ->
             item { Text(mensaje, color = if (catalogo.exito) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error) }
         }
-        items(catalogo.productos) { producto ->
-            ProductCard(nombre = producto.nombre, descripcion = if (producto.estado) "Activo" else "Inactivo", precio = producto.precio, stock = producto.stock)
-            if (puedeRegistrar && producto.id > 0) {
-                TextButton(onClick = { editando = producto; mostrarFormulario = true }) { Text("Editar") }
-                if (producto.estado) TextButton(onClick = { confirmarBaja = producto }) { Text("Dar de baja") }
-            }
-        }
-        if (!catalogo.cargando && catalogo.productos.isEmpty()) item { Text("No hay productos disponibles.") }
+        if (!catalogo.cargando && catalogo.productos.isEmpty()) item { Text("No hay productos guardados.") }
         item { HorizontalDivider() }
-        item { Text("Inventario de ejemplo", style = MaterialTheme.typography.titleMedium) }
         item {
             PrimaryTabRow(selectedTabIndex = tabSeleccionada) {
                 titulosTabs.forEachIndexed { index, titulo ->
@@ -108,10 +101,14 @@ fun ProductosScreenConTabs(
                 }
             }
         }
-        val lista = filtrarPorTab(tabSeleccionada)
+        val lista = filtrarPorTab(tabSeleccionada, catalogo.productos)
         if (lista.isEmpty()) item { Text("No hay productos en esta categoría.") }
         items(lista) { producto ->
-            ProductCard(nombre = producto.nombre, descripcion = if (producto.activo) "Activo" else "Inactivo", precio = producto.precio, stock = producto.stock)
+            ProductCard(nombre = producto.nombre, descripcion = if (producto.pendiente) "Pendiente · ID ${producto.id}" else if (producto.estado) "Activo" else "Inactivo", precio = producto.precio, stock = producto.stock)
+            if (puedeRegistrar && producto.id > 0) {
+                TextButton(onClick = { editando = producto; mostrarFormulario = true }) { Text("Editar") }
+                if (producto.estado) TextButton(onClick = { confirmarBaja = producto }) { Text("Dar de baja") }
+            }
         }
     }
 }

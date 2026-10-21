@@ -62,14 +62,25 @@ class ProductosUiTest {
             compose.onNodeWithText("Registrar producto").performScrollTo().performClick()
             compose.waitUntil(5000) { registros == 1 }
             compose.onNodeWithText("Nuevo producto").assertDoesNotExist()
+            repeat(3) {
+                if (compose.onAllNodesWithText("Producto de prueba").fetchSemanticsNodes().isEmpty())
+                    compose.onNodeWithTag("phone").performTouchInput { swipeUp() }
+            }
             compose.onNodeWithText("Producto de prueba").performScrollTo().assertIsDisplayed()
             captura("catalogo-registrado")
-            compose.onNodeWithText("Inventario de ejemplo").assertExists()
+            repeat(3) { compose.onNodeWithTag("phone").performTouchInput { swipeDown() } }
+            compose.onNodeWithText("Catálogo guardado").assertExists()
             // Return through the form, then revisit the catalog: the demo server retains the new product.
             compose.onNodeWithText("Registrar producto").performScrollTo().performClick()
             compose.onNodeWithText("← Volver al catálogo").performClick()
+            repeat(3) {
+                if (compose.onAllNodesWithText("Producto de prueba").fetchSemanticsNodes().isEmpty())
+                    compose.onNodeWithTag("phone").performTouchInput { swipeUp() }
+            }
             compose.onNodeWithText("Producto de prueba").assertExists()
-            compose.onNodeWithText("Actualizar catálogo").performScrollTo().performClick()
+            repeat(3) { compose.onNodeWithTag("phone").performTouchInput { swipeDown() } }
+            compose.onNodeWithText("Sincronizar").performScrollTo().performClick()
+            repeat(3) { compose.onNodeWithTag("phone").performTouchInput { swipeUp() } }
             compose.waitUntil(5000) { compose.onAllNodesWithText("Producto de prueba").fetchSemanticsNodes().isNotEmpty() }
             assertEquals(1, registros)
         } finally { stopKoin() }

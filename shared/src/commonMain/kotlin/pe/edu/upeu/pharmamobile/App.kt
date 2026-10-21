@@ -45,6 +45,7 @@ import pe.edu.upeu.pharmamobile.presentation.cliente.ClientesScreen
 import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidosScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductosScreenConTabs
+import pe.edu.upeu.pharmamobile.presentation.producto.CatalogoViewModel
 import pe.edu.upeu.pharmamobile.ui.theme.PharmaMobileTheme
 
 private data class ItemNav(val pantalla: Screen, val label: String, val iconoLleno: androidx.compose.ui.graphics.vector.ImageVector, val iconoContorno: androidx.compose.ui.graphics.vector.ImageVector)
@@ -73,10 +74,11 @@ private fun pantallaDesdeClave(clave: String): Screen = when (clave) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun App(modoDemostracion: Boolean = false) {
+fun App(modoDemostracion: Boolean = false, onConfigurarServidor: (() -> Unit)? = null) {
     var clavePantallaActual by rememberSaveable { mutableStateOf("inicio") }
     var temaOscuro by rememberSaveable { mutableStateOf(false) }
-    val productos = remember { mutableStateListOf<Producto>() }
+    val catalogoVm: CatalogoViewModel = koinInject()
+    val productos = catalogoVm.productos
     val pantallaActual = pantallaDesdeClave(clavePantallaActual)
     val sesionVm: SesionViewModel = koinInject()
     val auth = sesionVm.estado
@@ -89,7 +91,7 @@ fun App(modoDemostracion: Boolean = false) {
             return@PharmaMobileTheme
         }
         if (sesion == null) {
-            LoginScreen(auth, sesionVm::cambiarUsuario, sesionVm::cambiarClave, sesionVm::iniciarSesion, modoDemostracion)
+            LoginScreen(auth, sesionVm::cambiarUsuario, sesionVm::cambiarClave, sesionVm::iniciarSesion, modoDemostracion, onConfigurarServidor)
             return@PharmaMobileTheme
         }
         Scaffold(
@@ -97,6 +99,7 @@ fun App(modoDemostracion: Boolean = false) {
                 TopAppBar(
                     title = { Text(tituloPantalla(pantallaActual)) },
                     actions = {
+                        if (onConfigurarServidor != null) androidx.compose.material3.TextButton(onClick = onConfigurarServidor) { Text("Servidor") }
                         Button(onClick = { sesionVm.cerrarSesion(); clavePantallaActual = "inicio" }) { Text("Cerrar sesión") }
                         IconButton(onClick = { temaOscuro = !temaOscuro }) {
                             Icon(
@@ -137,7 +140,7 @@ fun App(modoDemostracion: Boolean = false) {
                 )
                 is Screen.Productos -> ProductosScreenConTabs(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
-                    onProductoRegistrado = { productos.add(it) },
+                    onProductoRegistrado = {},
                     puedeRegistrar = sesion.puede("CATALOGO_ESCRIBIR")
                 )
                 is Screen.Clientes -> if (sesion.puede("CLIENTES_LEER")) ClientesScreen(modifier = Modifier.fillMaxSize().padding(paddingValues), puedeEscribir = sesion.puede("CLIENTES_ESCRIBIR"))

@@ -17,12 +17,16 @@ import pe.edu.upeu.pharmamobile.data.remote.crearHttpClient
 import pe.edu.upeu.pharmamobile.data.repository.AuthRepositorioRest
 import pe.edu.upeu.pharmamobile.domain.model.Credenciales
 import pe.edu.upeu.pharmamobile.domain.model.ErrorSesion
+import pe.edu.upeu.pharmamobile.domain.model.Sesion
 
 private class TokenMemoria : AlmacenSeguro {
     var token: String? = null
+    var sesionLocal: Sesion? = null
     override fun guardarToken(token: String) { this.token = token }
     override fun leerToken(): String? = token
-    override fun borrarToken() { token = null }
+    override fun borrarToken() { token = null; sesionLocal = null }
+    override fun guardarSesionLocal(sesion: Sesion, duracionSegundos: Long) { sesionLocal = sesion }
+    override fun leerSesionLocal(): Sesion? = sesionLocal
 }
 
 class AuthRepositoryTest {
@@ -74,6 +78,16 @@ class AuthRepositoryTest {
         assertEquals("admin", sesion?.usuario)
         assertEquals("Administrador", sesion?.nombreCompleto)
         assertTrue(sesion?.puede("CATALOGO_LEER") == true)
+        client.close()
+    }
+
+    @Test fun restauraSesionLocalSiNoHayConexion() = runBlocking {
+        val guardada = Sesion("a.b.c", "admin", "Administrador", setOf("CATALOGO_LEER"))
+        val storage = TokenMemoria().apply { token = guardada.token; sesionLocal = guardada }
+        val client = crearHttpClient(MockEngine { throw kotlinx.io.IOException("sin red") }, storage, "http://localhost:8080/", false)
+        val sesion = AuthRepositorioRest(client, storage).sesionGuardada()
+        assertEquals("admin", sesion?.usuario)
+        assertEquals("a.b.c", storage.token)
         client.close()
     }
 

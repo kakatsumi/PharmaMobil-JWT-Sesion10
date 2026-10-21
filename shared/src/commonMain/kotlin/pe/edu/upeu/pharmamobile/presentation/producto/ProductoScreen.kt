@@ -38,7 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import pe.edu.upeu.pharmamobile.domain.model.Producto
-import pe.edu.upeu.pharmamobile.data.repository.CategoriaDto
+import pe.edu.upeu.pharmamobile.domain.model.Categoria
 import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 
 @Composable
@@ -46,7 +46,7 @@ import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 fun ProductoScreen(
     modifier: Modifier = Modifier,
     productoInicial: Producto? = null,
-    categorias: List<CategoriaDto> = emptyList(),
+    categorias: List<Categoria> = emptyList(),
     cargando: Boolean = false,
     mensajeServidor: String? = null,
     onVolver: () -> Unit = {},

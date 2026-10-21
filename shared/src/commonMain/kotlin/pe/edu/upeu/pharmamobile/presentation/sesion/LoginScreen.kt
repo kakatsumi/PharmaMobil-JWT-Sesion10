@@ -10,6 +10,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.imePadding
 
 @Composable
-fun LoginScreen(estado: SesionUiState, cambiarUsuario: (String) -> Unit, cambiarClave: (String) -> Unit, iniciar: () -> Unit, modoDemostracion: Boolean = false) {
+fun LoginScreen(estado: SesionUiState, cambiarUsuario: (String) -> Unit, cambiarClave: (String) -> Unit, iniciar: () -> Unit, modoDemostracion: Boolean = false, configurarServidor: (() -> Unit)? = null) {
     Column(
         Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.Center,
@@ -40,5 +41,6 @@ fun LoginScreen(estado: SesionUiState, cambiarUsuario: (String) -> Unit, cambiar
         Button(onClick = iniciar, enabled = !estado.cargando, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
             if (estado.cargando) CircularProgressIndicator() else Text("Iniciar sesión")
         }
+        if (configurarServidor != null) TextButton(onClick = configurarServidor) { Text("Configurar servidor") }
     }
 }
