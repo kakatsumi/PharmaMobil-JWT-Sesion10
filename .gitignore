@@ -18,4 +18,8 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 dist/*.jar
+/data/
+/.vista-previa.pid
+/.vista-previa.log
+/entregables/android/*.apk
 /Abrir PharmaMobil

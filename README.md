@@ -1,70 +1,54 @@
-# PharmaMobile
+# PharmaMobil
 
-Aplicacion multiplataforma para la **gestion integral de una farmacia**: clientes,
-productos, pedidos e inventario farmaceutico. Desarrollada con **Kotlin Multiplatform (KMP)**
-y **Compose Multiplatform**, con estrategia *offline-first* y consumo de servicios REST.
+Aplicación de gestión farmacéutica del curso **Desarrollo de Aplicaciones Móviles** (Universidad Peruana Unión, 2026-2). Alumno: **Ricardo Alva Pardave**. Este proyecto continúa el trabajo de la sesión 10; PharmaSoft es el backend REST del docente.
 
-> Universidad Peruana Union - Facultad de Ingenieria y Arquitectura
-> Pregrado - VIII Ciclo - Semestre 2026-2
+## Estado y arquitectura
 
-## Arquitectura y source sets
+El módulo `shared` contiene modelos y contratos de dominio, servicios Ktor, repositorios, SQLDelight, ViewModels y pantallas Compose. `androidApp` empaqueta la aplicación Android. `desktopApp` muestra la interfaz Compose en Ubuntu. Los archivos iOS heredados se conservan sin ampliar su implementación porque el docente excluyó iOS.
 
-El codigo compartido vive en el modulo `shared`, organizado por *source sets*:
+Productos usa `GET/POST/PUT/DELETE /api/v1/productos` y categorías `GET /api/v1/categorias`; clientes usa su CRUD `/api/v1/clientes`; ventas usa `GET/POST /api/v1/ventas`, que son las operaciones reales del backend. La interfaz respeta los permisos que devuelve `/api/v1/auth/me`; el servidor decide finalmente la autorización. Las operaciones protegidas usan JWT con Ktor Auth. Android cifra el token y los datos mínimos de sesión con AES-GCM y Android Keystore. No se guardan contraseñas ni se registran cabeceras `Authorization`.
 
-| Source set     | Rol principal                     | Ejemplos de contenido                                   |
-|----------------|-----------------------------------|---------------------------------------------------------|
-| `commonMain`   | Logica de negocio compartida      | Modelos (Cliente, Producto, Pedido), casos de uso, validaciones, calculos de stock |
-| `androidMain`  | Implementacion especifica Android | Bindings y APIs del ecosistema Google Android (camara, GPS) |
-| `iosMain`      | Implementacion especifica iOS     | Bindings y SDK nativo para dispositivos Apple           |
+La pantalla de productos observa `PharmaDb` mediante Flow. Un alta se guarda primero con ID negativo y `pendiente = 1`; al sincronizar, se envía cada pendiente antes de descargar todas las páginas del catálogo. Los datos locales sobreviven a cierres de la aplicación. Las categorías se guardan para poder crear productos sin red. Edición y baja siguen siendo operaciones REST en línea. El backend no ofrece refresh token ni idempotencia de POST; un 401 requiere volver a iniciar sesión y un 409 después de una respuesta perdida requiere comprobar el servidor.
 
-La regla practica: todo lo que sea **estructura de datos y reglas de negocio** va en
-`commonMain` para escribirse una sola vez; el **acceso a hardware o APIs nativas** se
-resuelve por plataforma en `androidMain` / `iosMain` mediante `expect`/`actual`.
+## Requisitos
 
-## Estructura del proyecto
+- Java 17 y Android SDK para compilar la APK. El wrapper Gradle incluido resuelve las dependencias la primera vez.
+- PharmaSoft del docente en el puerto 8080 para login, CRUD y sincronización reales.
+- Python 3 y Firefox para la vista web local. No hace falta instalar la aplicación en Ubuntu.
 
-- `shared/` - codigo compartido (commonMain, androidMain, iosMain + tests).
-- `androidApp/` - aplicacion Android (punto de entrada, `MainActivity`).
-- `desktopApp/` - vista de escritorio JVM con ventana del tamaño de un móvil.
-- `iosApp/` - aplicacion iOS (requiere macOS con Xcode para compilar).
+## Android y APK
 
-## Como ejecutar
+```bash
+./gradlew :shared:desktopTest
+./gradlew :androidApp:assembleDebug
+```
 
-- **Escritorio Linux x64 (sin Android Studio ni emulador):** instala Java 17 o superior,
-  abre una terminal en esta carpeta y ejecuta `./ver-movil.sh`. La primera vez
-  se descarga el paquete listo para ejecutar desde GitHub Releases. Se abre una ventana de 400 × 800 con la misma
-  interfaz Compose del móvil. Usa `demo` como usuario y contraseña para explorar
-  Inicio, Productos, Clientes y Pedidos. Los datos de demostración son locales y
-  no se envían al servidor. Para usar PharmaSoft real, primero inicia el backend
-  y ejecuta `./ver-movil.sh --backend=http://localhost:8080` con sus credenciales.
-  Un servidor remoto requiere HTTPS. El token de escritorio solo vive en memoria
-  y se pierde al cerrar la ventana. Consulta [la guía de escritorio](docs/DESKTOP.md).
-  Para abrirlo con un clic en Linux, ejecuta una vez `./instalar-acceso-directo.sh`.
-  El instalador también crea **Abrir PharmaMobil** junto a esta carpeta para
-  iniciarlo directamente desde el gestor de archivos.
-- **Android:** abrir el proyecto en Android Studio, seleccionar un emulador o dispositivo
-  fisico y ejecutar la configuracion `androidApp`. Por linea de comandos:
-  `./gradlew :androidApp:assembleDebug`
-- **iOS:** abrir `iosApp/` en Xcode desde un equipo Mac y ejecutar.
+La APK queda en `androidApp/build/outputs/apk/debug/androidApp-debug.apk` y se copia para entrega a `entregables/android/PharmaMobil-debug.apk`. Se puede copiar al teléfono y abrir desde su gestor de archivos, o instalar con `adb install -r entregables/android/PharmaMobil-debug.apk` si ADB está disponible y autorizado por el dispositivo. La copia binaria es local y está excluida del historial Git.
 
-## Estado
+El emulador usa `http://10.0.2.2:8080/` por defecto. En un teléfono físico, abre **Configurar servidor** e introduce `http://IP_PRIVADA_DE_LA_PC:8080/`; cierra y reabre la aplicación. El teléfono y la computadora deben estar en la misma red y PharmaSoft debe escuchar en una interfaz accesible. La APK de depuración admite HTTP de laboratorio; la configuración de producción exige HTTPS. Cambiar esta URL no requiere recompilar. IntelliJ IDEA y Android Studio siguen siendo compatibles con los módulos Gradle.
 
-La aplicación comparte interfaz y lógica entre Android, iOS y JVM Desktop.
+## Vista Ubuntu sin IDE
 
-## Configuracion
+```bash
+./abrir-vista-previa.sh
+./abrir-vista-previa.sh --stop
+./abrir-pharmamobil.sh
+```
 
-- Package base: `pe.edu.upeu.pharmamobile`
-- Kotlin `2.4.10` - Compose Multiplatform `1.11.1` - AGP `9.3.1`
-- minSdk 24 / targetSdk 36
+La primera orden abre Firefox en `http://127.0.0.1:5173/` y usa la API real en `http://localhost:8080`. La vista guarda productos en IndexedDB, ofrece login, catálogo, altas pendientes, sincronización, clientes y ventas. No es una maqueta ni comparte la base SQLite Android. La tercera orden abre Compose Desktop conectado al backend real con una base persistente en `data/pharma.db`. El módulo Desktop heredado también conserva su modo de demostración rotulado; los scripts nuevos abren el backend real. Ninguno instala accesos directos ni modifica el menú de Ubuntu.
 
-## AUTENTICACIÓN JWT
+## Pruebas y documentación
 
-La sesión 10 integra el login de PharmaSoft en la aplicación KMP. La interfaz Compose usa `SesionViewModel`, casos de uso y `AuthRepository`; `AuthRepositorioRest` consume `POST /api/v1/auth/login` y valida la sesión guardada con `GET /api/v1/auth/me`. El JWT no se muestra en pantalla ni se guarda junto con la contraseña.
+`commonTest` contiene pruebas de autenticación y contratos REST con Ktor MockEngine. `desktopTest` crea una base SQLite en memoria por prueba para verificar altas offline, IDs negativos, sincronización subir-antes-de-bajar, Flow y conservación de pendientes. Estas pruebas no sustituyen la verificación de modo avión en Android ni la comprobación del producto en Swagger.
 
-Android cifra el token con AES-GCM y una llave de Android Keystore. iOS utiliza Keychain. El cliente Ktor compartido instala ContentNegotiation, DefaultRequest, Bearer Auth y Logging; en depuración registra solo cabeceras con `Authorization` saneada, y fuera de ella desactiva el registro. El Bearer se envía de inmediato en rutas protegidas y se excluye del login; la caché se limpia al iniciar/cerrar sesión.
+- [Auditoría general](docs/AUDITORIA_GENERAL.md)
+- [Sesión 10](docs/sesion10/README.md)
+- [Sesión 11](docs/sesion11/README.md)
+- [Informe técnico](docs/sesion11/INFORME_TECNICO.md)
+- [Manual de usuario](docs/sesion11/MANUAL_USUARIO.md)
+- [Lista de cotejo](docs/sesion11/LISTA_COTEJO.md)
+- [Vista previa web](vista-previa/README.md)
 
-El servidor dura 3600 segundos por token según la guía y no tiene refresh. Al reabrir la app se comprueba `/auth/me`; un 401 invalida la sesión y vuelve al login, mientras un 403 mantiene la sesión y muestra falta de permisos. La UI usa `CATALOGO_ESCRIBIR`, `CLIENTES_LEER` y `VENTAS_LEER` para mostrar acciones y secciones. El backend mantiene la autorización definitiva.
+## Limitaciones verificables
 
-Cuentas **solo de laboratorio**: `admin` (ADMIN), `vendedor` (VENDEDOR), `almacen` (ALMACENERO), con las claves del docente. No se incluyen claves en producción. El emulador Android accede a PharmaSoft en `http://10.0.2.2:8080`; para iOS Simulator se usa `http://localhost:8080` y se requiere macOS/Xcode. En teléfono físico debe configurarse una dirección alcanzable con TLS.
-
-**Limitaciones:** la rama previa solo tenía inventario simulado y pantallas vacías de clientes/pedidos. Se incorporó lectura y creación protegida de productos usando categoría; clientes y ventas aún no hacen operaciones REST. La matriz POST de la guía requiere completar los CRUD REST de sesiones anteriores. Véase [la documentación de sesión 10](docs/sesion10/README.md), [informe](docs/sesion10/informe/INFORME_TECNICO.md), [manual](docs/sesion10/MANUAL_USUARIO.md) y [cotejo](docs/sesion10/LISTA_COTEJO.md).
+La prueba de instalación, el ciclo en modo avión y la confirmación en Swagger dependen de un emulador o teléfono y de PharmaSoft activos. No se presentan capturas ni resultados de esas pruebas si no se ejecutaron. El backend no admite una clave de idempotencia para altas: ante una respuesta perdida, la fila local permanece pendiente y se debe comprobar el servidor antes de reintentar.

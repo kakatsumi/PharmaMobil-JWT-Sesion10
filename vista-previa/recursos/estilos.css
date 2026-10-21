@@ -1,0 +1,32 @@
+:root { font-family: system-ui, sans-serif; color: #18342b; background: #f3f7f4; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+header { background: #146343; color: white; padding: 1rem max(1rem, calc((100vw - 980px)/2)); display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+header small { display: block; opacity: .85; }
+#conexion { padding: .35rem .7rem; background: #ffffff2b; border-radius: 1rem; font-size: .85rem; }
+main { max-width: 980px; margin: 0 auto; padding: 1rem; }
+h1, h2, h3 { margin-top: .25rem; }
+p { line-height: 1.4; }
+.tarjeta, .elemento { background: white; border: 1px solid #d5e4da; border-radius: 14px; padding: 1rem; box-shadow: 0 2px 8px #0b352012; }
+#acceso { max-width: 520px; }
+form { display: grid; gap: .7rem; }
+label { display: grid; gap: .25rem; font-weight: 600; }
+input, select { width: 100%; padding: .7rem; border: 1px solid #9db8aa; border-radius: 8px; font: inherit; }
+button { border: 0; border-radius: 8px; background: #146343; color: white; font: inherit; font-weight: 600; padding: .65rem .9rem; cursor: pointer; }
+button:hover { background: #0d4c33; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.secundario, nav button { background: #e2efe6; color: #146343; }
+.secundario:hover, nav button:hover { background: #cbe6d3; }
+nav { display: flex; gap: .4rem; margin: 1rem 0; flex-wrap: wrap; }
+nav button[aria-current="page"] { background: #146343; color: white; }
+.panel { display: grid; gap: .8rem; }
+.fila { display: flex; align-items: center; justify-content: space-between; gap: .7rem; flex-wrap: wrap; }
+.lista { display: grid; gap: .6rem; }
+.elemento { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.elemento p { margin: .25rem 0; }
+.acciones { display: flex; gap: .4rem; flex-wrap: wrap; }
+.etiqueta { display: inline-block; color: #7a4b00; background: #fff0c4; border-radius: 1rem; padding: .2rem .5rem; font-size: .8rem; }
+#mensaje { min-height: 1.4rem; color: #8a250f; font-weight: 600; }
+footer { text-align: center; padding: 2rem 1rem; font-size: .8rem; color: #547063; }
+@media (max-width: 600px) { header { align-items: start; flex-direction: column; } .elemento { flex-direction: column; } }

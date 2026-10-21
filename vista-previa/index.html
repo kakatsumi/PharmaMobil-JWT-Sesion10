@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PharmaMobil · vista previa local</title>
+  <link rel="stylesheet" href="recursos/estilos.css">
+</head>
+<body>
+  <header>
+    <div><strong>PharmaMobil</strong><small>Vista previa local conectada a PharmaSoft</small></div>
+    <span id="conexion" role="status">Comprobando conexión…</span>
+  </header>
+  <main>
+    <section id="acceso" class="tarjeta">
+      <h1>Iniciar sesión</h1>
+      <p>Backend: <code>http://localhost:8080</code>. El JWT permanece solo en esta pestaña.</p>
+      <form id="login-form">
+        <label>Usuario<input name="usuario" autocomplete="username" required></label>
+        <label>Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
+        <button type="submit">Entrar</button>
+      </form>
+      <p id="usuario-actual"></p>
+      <button id="salir" type="button" hidden>Cerrar sesión</button>
+    </section>
+
+    <nav aria-label="Secciones">
+      <button type="button" data-tab="productos" aria-current="page">Productos</button>
+      <button type="button" data-tab="clientes">Clientes</button>
+      <button type="button" data-tab="ventas">Ventas</button>
+    </nav>
+    <p id="mensaje" role="status" aria-live="polite"></p>
+
+    <section id="productos" class="panel">
+      <div class="fila"><h2>Productos guardados</h2><button id="sincronizar" type="button">Sincronizar</button></div>
+      <p id="pendientes"></p>
+      <p>Esta lista se lee de IndexedDB. Los cambios sin conexión quedan pendientes para enviarse antes de descargar el catálogo.</p>
+      <div id="lista-productos" class="lista"></div>
+      <form id="producto-form" class="tarjeta" hidden>
+        <h3 id="producto-titulo">Registrar producto</h3>
+        <input name="id" type="hidden">
+        <label>Nombre<input name="nombre" minlength="3" maxlength="150" required></label>
+        <label>Precio (S/)<input name="precio" type="number" min="0.01" step="0.01" required></label>
+        <label>Stock<input name="stock" type="number" min="0" step="1" required></label>
+        <label>Categoría<select name="categoriaId" required></select></label>
+        <div class="fila"><button type="submit">Guardar</button><button id="cancelar-producto" type="button" class="secundario">Cancelar</button></div>
+      </form>
+      <button id="nuevo-producto" type="button" hidden>Registrar producto</button>
+    </section>
+
+    <section id="clientes" class="panel" hidden>
+      <div class="fila"><h2>Clientes de PharmaSoft</h2><button id="actualizar-clientes" type="button">Actualizar</button></div>
+      <p>Esta sección requiere conexión. No se muestran registros simulados.</p>
+      <div id="lista-clientes" class="lista"></div>
+      <form id="cliente-form" class="tarjeta" hidden>
+        <h3>Cliente</h3><input name="id" type="hidden">
+        <label>DNI<input name="dni" pattern="[0-9]{8}" required></label>
+        <label>Nombres<input name="nombres" minlength="2" required></label>
+        <label>Apellidos<input name="apellidos" minlength="2" required></label>
+        <label>Correo<input name="email" type="email" required></label>
+        <label>Teléfono<input name="telefono" pattern="[0-9]{9}"></label>
+        <label>Dirección<input name="direccion"></label>
+        <div class="fila"><button type="submit">Guardar</button><button id="cancelar-cliente" type="button" class="secundario">Cancelar</button></div>
+      </form>
+      <button id="nuevo-cliente" type="button" hidden>Registrar cliente</button>
+    </section>
+
+    <section id="ventas" class="panel" hidden>
+      <div class="fila"><h2>Ventas de PharmaSoft</h2><button id="actualizar-ventas" type="button">Actualizar</button></div>
+      <p>PharmaSoft permite registrar y consultar ventas. No ofrece edición ni eliminación.</p>
+      <div id="lista-ventas" class="lista"></div>
+      <form id="venta-form" class="tarjeta" hidden>
+        <h3>Registrar venta</h3>
+        <label>ID de cliente<input name="clienteId" type="number" min="1" step="1" required></label>
+        <label>ID de producto<input name="productoId" type="number" min="1" step="1" required></label>
+        <label>Cantidad<input name="cantidad" type="number" min="1" step="1" required></label>
+        <div class="fila"><button type="submit">Guardar venta</button><button id="cancelar-venta" type="button" class="secundario">Cancelar</button></div>
+      </form>
+      <button id="nueva-venta" type="button" hidden>Registrar venta</button>
+    </section>
+  </main>
+  <footer>Vista web local · IndexedDB no reemplaza SQLite Android · Ricardo Alva Pardave</footer>
+  <script type="module" src="recursos/app.js"></script>
+</body>
+</html>
