@@ -52,3 +52,19 @@ La primera orden abre Firefox en `http://127.0.0.1:5173/` y usa la API real en `
 ## Limitaciones verificables
 
 La prueba de instalación, el ciclo en modo avión y la confirmación en Swagger dependen de un emulador o teléfono y de PharmaSoft activos. No se presentan capturas ni resultados de esas pruebas si no se ejecutaron. El backend no admite una clave de idempotencia para altas: ante una respuesta perdida, la fila local permanece pendiente y se debe comprobar el servidor antes de reintentar.
+
+
+## Persistencia offline-first
+
+PharmaMobil utiliza SQLDelight y SQLite para almacenar
+productos localmente y permitir su consulta sin conexión.
+
+Los productos registrados sin internet se guardan con
+un identificador negativo y quedan pendientes de sincronización.
+
+Cuando se recupera la conexión con PharmaSoft, la aplicación
+intenta enviar primero los productos pendientes y después
+actualiza el catálogo local con los datos del servidor.
+
+La interfaz utiliza Flow para reflejar automáticamente
+los cambios almacenados en la base de datos.
