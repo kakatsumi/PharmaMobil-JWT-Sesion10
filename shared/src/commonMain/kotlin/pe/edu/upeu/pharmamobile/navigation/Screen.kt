@@ -11,5 +11,5 @@ fun tituloPantalla(pantalla: Screen): String = when (pantalla) {
     is Screen.Inicio -> "Inicio"
     is Screen.Productos -> "Productos"
     is Screen.Clientes -> "Clientes"
-    is Screen.Pedidos -> "Pedidos"
+    is Screen.Pedidos -> "Ventas"
 }

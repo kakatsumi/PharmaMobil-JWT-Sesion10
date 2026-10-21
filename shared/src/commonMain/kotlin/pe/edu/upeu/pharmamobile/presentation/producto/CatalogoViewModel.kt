@@ -16,7 +16,7 @@ import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 
 class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesion: SesionViewModel) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    var productos by mutableStateOf<List<String>>(emptyList())
+    var productos by mutableStateOf<List<Producto>>(emptyList())
         private set
     var categorias by mutableStateOf<List<CategoriaDto>>(emptyList())
         private set
@@ -35,9 +35,9 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
         cargando = true
         scope.launch {
             try {
-                repo.registrar(producto, categoriaId)
+                repo.registrar(producto.copy(categoriaId = categoriaId))
                 // Keep successful creation successful even if a later refresh cannot connect.
-                productos = productos + producto.nombre
+                productos = productos + producto.copy(categoriaId = categoriaId)
                 onExito()
                 mensaje = "Producto registrado en PharmaSoft"
                 exito = true
@@ -47,6 +47,43 @@ class CatalogoViewModel(private val repo: ProductoCatalogoRest, private val sesi
                   if (e == ErrorSesion.SesionExpirada) sesion.sesionExpirada()
                   else mensaje = e.message
               } catch (e: Exception) { exito = false; mensaje = ErrorSesion.SinConexion.message }
+            finally { cargando = false }
+        }
+    }
+
+    fun actualizar(producto: Producto, categoriaId: Long, onExito: () -> Unit = {}) {
+        if (cargando) return
+        limpiarMensaje()
+        cargando = true
+        scope.launch {
+            try {
+                repo.actualizar(producto.copy(categoriaId = categoriaId))
+                productos = repo.listar()
+                onExito()
+                mensaje = "Producto actualizado"
+                exito = true
+            } catch (e: CancellationException) { throw e }
+            catch (e: ErrorSesion) {
+                if (e == ErrorSesion.SesionExpirada) sesion.sesionExpirada() else mensaje = e.message
+            } catch (e: Exception) { mensaje = ErrorSesion.Inesperado.message }
+            finally { cargando = false }
+        }
+    }
+
+    fun eliminar(id: Long) {
+        if (cargando) return
+        limpiarMensaje()
+        cargando = true
+        scope.launch {
+            try {
+                repo.eliminar(id)
+                productos = repo.listar()
+                mensaje = "Producto dado de baja"
+                exito = true
+            } catch (e: CancellationException) { throw e }
+            catch (e: ErrorSesion) {
+                if (e == ErrorSesion.SesionExpirada) sesion.sesionExpirada() else mensaje = e.message
+            } catch (e: Exception) { mensaje = ErrorSesion.Inesperado.message }
             finally { cargando = false }
         }
     }

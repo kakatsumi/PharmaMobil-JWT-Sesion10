@@ -45,16 +45,17 @@ import pe.edu.upeu.pharmamobile.ui.theme.PharmaDimens
 @Preview
 fun ProductoScreen(
     modifier: Modifier = Modifier,
+    productoInicial: Producto? = null,
     categorias: List<CategoriaDto> = emptyList(),
     cargando: Boolean = false,
     mensajeServidor: String? = null,
     onVolver: () -> Unit = {},
     onProductoRegistrado: (Producto, Long, () -> Unit) -> Unit = { _, _, _ -> }
 ) {
-    var nombre by rememberSaveable { mutableStateOf("") }
-    var precio by rememberSaveable { mutableStateOf("") }
-    var stock by rememberSaveable { mutableStateOf("") }
-    var categoriaId by rememberSaveable { mutableStateOf("") }
+    var nombre by rememberSaveable(productoInicial?.id) { mutableStateOf(productoInicial?.nombre.orEmpty()) }
+    var precio by rememberSaveable(productoInicial?.id) { mutableStateOf(productoInicial?.precio?.toString().orEmpty()) }
+    var stock by rememberSaveable(productoInicial?.id) { mutableStateOf(productoInicial?.stock?.toString().orEmpty()) }
+    var categoriaId by rememberSaveable(productoInicial?.id) { mutableStateOf(productoInicial?.categoriaId?.toString().orEmpty()) }
     var mensaje by rememberSaveable { mutableStateOf("") }
     var esExito by rememberSaveable { mutableStateOf(false) }
     var intentoRegistrar by rememberSaveable { mutableStateOf(false) }
@@ -93,7 +94,7 @@ fun ProductoScreen(
     ) {
         TextButton(onClick = onVolver, enabled = !cargando) { Text("← Volver al catálogo") }
         Text(
-            text = "Nuevo producto",
+            text = if (productoInicial == null) "Nuevo producto" else "Editar producto",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
@@ -174,12 +175,12 @@ fun ProductoScreen(
                         intentoRegistrar = true
                         if (formularioValido) {
                             val producto = Producto(
-                                id = 0,
+                                id = productoInicial?.id ?: 0,
                                 nombre = nombre.trim(),
                                 precio = precioNum!!,
                                 stock = stockNum!!,
                             )
-                            onProductoRegistrado(producto, categoria!!.id) {
+                            onProductoRegistrado(producto, categoria.id) {
                                 nombre = ""
                                 precio = ""
                                 stock = ""
@@ -195,7 +196,7 @@ fun ProductoScreen(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !cargando,
                 ) {
-                    Text(if (cargando) "Guardando…" else "Registrar producto")
+                    Text(if (cargando) "Guardando…" else if (productoInicial == null) "Registrar producto" else "Guardar cambios")
                 }
             }
         }

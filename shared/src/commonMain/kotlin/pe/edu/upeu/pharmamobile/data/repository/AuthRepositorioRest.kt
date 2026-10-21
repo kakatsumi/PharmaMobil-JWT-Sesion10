@@ -59,5 +59,7 @@ fun mapearError(status: HttpStatusCode, duranteLogin: Boolean): ErrorSesion = wh
     HttpStatusCode.BadRequest -> ErrorSesion.SolicitudInvalida
     HttpStatusCode.Unauthorized -> if (duranteLogin) ErrorSesion.CredencialesInvalidas else ErrorSesion.SesionExpirada
     HttpStatusCode.Forbidden -> ErrorSesion.SinPermiso
+    HttpStatusCode.NotFound -> ErrorSesion.NoEncontrado
+    HttpStatusCode.Conflict -> ErrorSesion.Conflicto
     else -> ErrorSesion.Inesperado
 }

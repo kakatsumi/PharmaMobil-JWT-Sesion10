@@ -7,6 +7,10 @@ import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
 import pe.edu.upeu.pharmamobile.data.remote.crearHttpClient
 import pe.edu.upeu.pharmamobile.data.repository.AuthRepositorioRest
 import pe.edu.upeu.pharmamobile.data.repository.ProductoCatalogoRest
+import pe.edu.upeu.pharmamobile.data.repository.ClienteRest
+import pe.edu.upeu.pharmamobile.data.repository.VentaRest
+import pe.edu.upeu.pharmamobile.presentation.cliente.ClienteViewModel
+import pe.edu.upeu.pharmamobile.presentation.pedido.VentaViewModel
 import pe.edu.upeu.pharmamobile.presentation.producto.CatalogoViewModel
 import pe.edu.upeu.pharmamobile.domain.repository.AuthRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.CerrarSesionUseCase
@@ -26,6 +30,10 @@ fun iniciarDependencias(almacen: AlmacenSeguro, motor: HttpClientEngine, baseUrl
             single { SesionViewModel(get(), get(), get()) }
             single { ProductoCatalogoRest(get()) }
             single { CatalogoViewModel(get(), get()) }
+            single { ClienteRest(get()) }
+            single { ClienteViewModel(get(), get()) }
+            single { VentaRest(get()) }
+            single { VentaViewModel(get(), get()) }
         })
     }
 }

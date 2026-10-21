@@ -3,6 +3,7 @@ package pe.edu.upeu.pharmamobile.data.remote
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
@@ -20,6 +21,11 @@ import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
 fun crearHttpClient(motor: HttpClientEngine, almacen: AlmacenSeguro, baseUrl: String, esDepuracion: Boolean): HttpClient =
     HttpClient(motor) {
         expectSuccess = true
+        install(HttpTimeout) {
+            requestTimeoutMillis = 15_000
+            connectTimeoutMillis = 10_000
+            socketTimeoutMillis = 15_000
+        }
         install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
         install(DefaultRequest) {
             url(baseUrl.trimEnd('/') + "/")

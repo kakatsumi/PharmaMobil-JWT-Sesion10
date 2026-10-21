@@ -53,7 +53,7 @@ private val itemsNav = listOf(
     ItemNav(Screen.Inicio, "Inicio", Icons.Filled.Home, Icons.Outlined.Home),
     ItemNav(Screen.Productos, "Productos", Icons.Filled.Inventory2, Icons.Outlined.Inventory2),
     ItemNav(Screen.Clientes, "Clientes", Icons.Filled.Group, Icons.Outlined.Group),
-    ItemNav(Screen.Pedidos, "Pedidos", Icons.AutoMirrored.Filled.ReceiptLong, Icons.AutoMirrored.Outlined.ReceiptLong)
+    ItemNav(Screen.Pedidos, "Ventas", Icons.AutoMirrored.Filled.ReceiptLong, Icons.AutoMirrored.Outlined.ReceiptLong)
 )
 
 private fun clavePantalla(pantalla: Screen): String = when (pantalla) {
@@ -140,8 +140,8 @@ fun App(modoDemostracion: Boolean = false) {
                     onProductoRegistrado = { productos.add(it) },
                     puedeRegistrar = sesion.puede("CATALOGO_ESCRIBIR")
                 )
-                is Screen.Clientes -> if (sesion.puede("CLIENTES_LEER")) ClientesScreen(modifier = Modifier.fillMaxSize().padding(paddingValues))
-                is Screen.Pedidos -> if (sesion.puede("VENTAS_LEER")) PedidosScreen(modifier = Modifier.fillMaxSize().padding(paddingValues))
+                is Screen.Clientes -> if (sesion.puede("CLIENTES_LEER")) ClientesScreen(modifier = Modifier.fillMaxSize().padding(paddingValues), puedeEscribir = sesion.puede("CLIENTES_ESCRIBIR"))
+                is Screen.Pedidos -> if (sesion.puede("VENTAS_LEER")) PedidosScreen(modifier = Modifier.fillMaxSize().padding(paddingValues), puedeRegistrar = sesion.puede("VENTAS_REGISTRAR"))
             }
         }
     }

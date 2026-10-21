@@ -4,7 +4,10 @@ data class Producto(
     val id: Long,
     val nombre: String,
     val precio: Double,
-    var stock: Int
+    var stock: Int,
+    val categoriaId: Long? = null,
+    val estado: Boolean = true,
+    val pendiente: Boolean = false
 ) {
     init {
         require(nombre.isNotBlank()) { "El nombre del producto no puede estar vacio" }

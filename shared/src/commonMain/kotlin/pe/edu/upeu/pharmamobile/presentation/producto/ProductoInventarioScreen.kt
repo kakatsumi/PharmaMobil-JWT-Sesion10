@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -41,20 +42,32 @@ fun ProductosScreenConTabs(
 ) {
     var tabSeleccionada by rememberSaveable { mutableStateOf(0) }
     var mostrarFormulario by rememberSaveable { mutableStateOf(false) }
+    var editando by androidx.compose.runtime.remember { mutableStateOf<Producto?>(null) }
+    var confirmarBaja by androidx.compose.runtime.remember { mutableStateOf<Producto?>(null) }
     val catalogo: CatalogoViewModel = koinInject()
     LaunchedEffect(Unit) { catalogo.cargar() }
+    confirmarBaja?.let { producto ->
+        AlertDialog(
+            onDismissRequest = { confirmarBaja = null },
+            title = { Text("Dar de baja producto") },
+            text = { Text("¿Dar de baja a ${producto.nombre}?") },
+            confirmButton = { TextButton(onClick = { catalogo.eliminar(producto.id); confirmarBaja = null }) { Text("Dar de baja") } },
+            dismissButton = { TextButton(onClick = { confirmarBaja = null }) { Text("Cancelar") } }
+        )
+    }
     if (mostrarFormulario && puedeRegistrar) {
         ProductoScreen(
             modifier = modifier,
+            productoInicial = editando,
             categorias = catalogo.categorias,
             cargando = catalogo.cargando,
             mensajeServidor = catalogo.mensaje,
-            onVolver = { mostrarFormulario = false },
+            onVolver = { mostrarFormulario = false; editando = null },
             onProductoRegistrado = { producto, categoriaId, limpiar ->
-                catalogo.registrar(producto, categoriaId) {
-                    onProductoRegistrado(producto)
-                    limpiar()
-                    mostrarFormulario = false
+                if (editando == null) catalogo.registrar(producto, categoriaId) {
+                    onProductoRegistrado(producto); limpiar(); mostrarFormulario = false
+                } else catalogo.actualizar(producto, categoriaId) {
+                    limpiar(); mostrarFormulario = false; editando = null
                 }
             }
         )
@@ -67,7 +80,7 @@ fun ProductosScreenConTabs(
     ) {
         item { Text("Catálogo", style = MaterialTheme.typography.headlineSmall) }
         if (puedeRegistrar) item {
-            Button(onClick = { catalogo.limpiarMensaje(); mostrarFormulario = true }, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = { catalogo.limpiarMensaje(); editando = null; mostrarFormulario = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Registrar producto")
             }
         }
@@ -78,7 +91,13 @@ fun ProductosScreenConTabs(
         catalogo.mensaje?.let { mensaje ->
             item { Text(mensaje, color = if (catalogo.exito) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error) }
         }
-        items(catalogo.productos) { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        items(catalogo.productos) { producto ->
+            ProductCard(nombre = producto.nombre, descripcion = if (producto.estado) "Activo" else "Inactivo", precio = producto.precio, stock = producto.stock)
+            if (puedeRegistrar && producto.id > 0) {
+                TextButton(onClick = { editando = producto; mostrarFormulario = true }) { Text("Editar") }
+                if (producto.estado) TextButton(onClick = { confirmarBaja = producto }) { Text("Dar de baja") }
+            }
+        }
         if (!catalogo.cargando && catalogo.productos.isEmpty()) item { Text("No hay productos disponibles.") }
         item { HorizontalDivider() }
         item { Text("Inventario de ejemplo", style = MaterialTheme.typography.titleMedium) }
